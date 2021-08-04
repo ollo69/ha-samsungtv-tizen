@@ -1,0 +1,71 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Denne Samsung TV-en er allerede konfigurert.",
+            "already_in_progress": "Samsung TV-konfigurasjon pågår allerede.",
+            "not_found": "Ingen støttede Samsung TV-enheter ble funnet i nettverket.",
+            "auth_missing": "Home Assistant er ikke autorisert til å koble til denne Samsung TV-en. Sjekk TV-innstillingene for å autorisere Home Assistant.",
+            "not_successful": "Kan ikke koble til denne Samsung TV-enheten.",
+            "not_supported": "Denne Samsung TV-enheten støttes foreløpig ikke.",
+            "wrong_api_key": "Feil SmartThings-token.",
+            "st_device_not_found": "SmartThings TV-enhets-ID ikke funnet.",
+            "st_device_used": "SmartThings TV-enhets-ID allerede brukt.",
+            "st_multiple_device": "Flere TV-er funnet, kan ikke identifisere SmartThings-enheten som skal pares."
+        },
+        "error": {
+            "auth_missing": "Home Assistant er ikke autorisert til å koble til denne Samsung TV-en. Sjekk TV-innstillingene for å autorisere Home Assistant.",
+            "not_successful": "Kan ikke koble til denne Samsung TV-enheten.",
+            "not_supported": "Denne Samsung TV-enheten støttes foreløpig ikke.",
+            "wrong_api_key": "Feil SmartThings-token.",
+            "st_device_not_found": "SmartThings TV-enhets-ID ikke funnet.",
+            "st_device_used": "SmartThings TV-enhets-ID allerede brukt."
+        },
+        "flow_title": "SamsungTV Smart: {model}",
+        "step": {
+            "confirm": {
+                "description": "Vil du konfigurere Samsung TV {model}? Hvis du aldri har koblet til Home Assistant før, bør du se en popup på TV-en din som ber om autorisasjon. Manuelle konfigurasjoner for denne TV-en blir overskrevet.",
+                "title": "SamsungTV Smart"
+            },
+            "user": {
+                "data": {
+                    "host": "Vert eller IP-adresse",
+                    "name": "Navnet tildelt enheten",
+                    "use_ha_name_for_ws": "Bruk HA-forekomstnavn for identifikasjon på TV",
+                    "api_key": "SmartThings generert token (valgfritt)"
+                },
+                "description": "Skriv inn Samsung TV-informasjonen din. SmartThings-token er valgfritt, men virkelig foreslått. Hvis du aldri har koblet til Home Assistant før, bør du se en popup på TV-en din som ber om autorisasjon.",
+                "title": "SamsungTV Smart"
+            },
+            "stdevice": {
+                "data": {
+                    "st_devices": "SmartThings TV"
+                },
+                "description": "Du har konfigurert flere TV-er på kontoen din. Velg TV-en du konfigurerer fra listen.",
+                "title": "SamsungTV Smart"
+            },
+            "stdeviceid": {
+                "data": {
+                    "device_id": "SmartThings TV deviceID"
+                },
+                "description": "Automatisk SmartThings-enhetsID-deteksjon mislyktes. For å fortsette må du identifisere enhets-ID på SmartThings-nettstedet (se dokumentasjon) og sette det inn her.",
+                "title": "SamsungTV Smart"
+            }
+        },
+        "title": "SamsungTV Smart"
+    },
+    "options": {
+        "step": {
+            "init": {
+                "data": {
+                    "app_load_method": "Applikasjonsliste lastemodus ved oppstart",
+                    "use_st_status_info": "Bruk SmartThings TV-statusinformasjon",
+                    "use_st_channel_info": "Bruk informasjon om SmartThings TV-kanaler",
+                    "use_mute_check": "Bruk volum dempet status for å oppdage falsk strøm PÅ",
+                    "power_on_delay": "Sekunder for å forsinke strøm PÅ-status (0-60)",
+                    "sync_turn_off": "Liste over enheter for å slå AV med TV (kommaseparert)",
+                    "sync_turn_on": "Liste over enheter som skal slås på med TV (kommaseparert)"
+                }
+            }
+        }
+    }
+}
