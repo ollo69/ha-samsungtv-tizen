@@ -6,7 +6,7 @@
   "requirements": [
     "websocket-client>=0.58.0",
     "wakeonlan>=2.0.0",
-    "numpy>=1.19.2",
+    "numpy>=1.21.1",
     "aiofiles>=0.6.0"
   ],
   "dependencies": [],
