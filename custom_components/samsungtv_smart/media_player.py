@@ -866,7 +866,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             logo_option_changed = True
 
         if not logo_option_changed:
-            logo_option_changed = self._logo.check_requested()
+            logo_option_changed = await self._logo.check_requested()
 
         if not logo_option_changed:
             if self._attr_media_title and new_media_title == self._attr_media_title:
