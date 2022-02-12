@@ -1,0 +1,80 @@
+{
+    "config": {
+        "abort": {
+            "already_configured": "Essa TV Samsung já está configurada.",
+            "already_in_progress": "A configuração da TV Samsung já está em andamento.",
+            "unsupported_version": "Esta integração requer pelo menos a versão do HomeAssistant {req_ver}, você está executando a versão {run_ver}."
+        },
+        "error": {
+            "auth_missing": "O Home Assistant não está autorizado a se conectar a essa TV Samsung. Verifique as configurações da sua TV para autorizar o Home Assistant.",
+            "invalid_host": "Host inválido.",
+            "not_successful": "Não é possível criar uma conexão WebSocket com essa TV Samsung.",
+            "not_supported": "Essa TV Samsung não é compatível no momento.",
+            "wrong_api_key": "Token errado do SmartThings.",
+            "st_device_not_found": "ID de TV SmartThings não encontrado.",
+            "st_device_used": "ID de TV SmartThings já está em uso."
+        },
+        "flow_title": "SamsungTV Smart: {model}",
+        "step": {
+            "confirm": {
+                "description": "Deseja configurar a TV Samsung {model}? Se você nunca conectou o Home Assistant antes, verá um pop-up na TV solicitando uma autorização. As configurações manuais para esta TV serão substituídas.",
+                "title": "SamsungTV Smart"
+            },
+            "user": {
+                "data": {
+                    "host": "Host ou endereço IP",
+                    "name": "Nome atribuído à entidade",
+                    "use_ha_name_for_ws": "Use o nome da instância do HA para a identificação na TV",
+                    "api_key": "Token gerado pelo SmartThings (opcional)"
+                },
+                "description": "Insira as informações da sua TV Samsung. O token SmartThings é opcional, mas muito sugerido. Se você nunca conectou o Home Assistant antes, verá um pop-up na TV solicitando uma autorização.",
+                "title": "SamsungTV Smart"
+            },
+            "stdevice": {
+                "data": {
+                    "st_devices": "SmartThings TV"
+                },
+                "description": "Você tem várias TVs configuradas em sua conta. Selecione a TV que você está configurando na lista.",
+                "title": "SamsungTV Smart"
+            },
+            "stdeviceid": {
+                "data": {
+                    "device_id": "ID de TV SmartThings"
+                },
+                "description": "Falha na detecção automática de ID do SmartThings. Para continuar você deve identificar o ID no site SmartThings (ver documentação) e inseri-lo aqui.",
+                "title": "SamsungTV Smart"
+            }
+        },
+        "title": "SamsungTV Smart"
+    },
+    "options": {
+        "step": {
+            "init": {
+                "title": "Opções",
+                "data": {
+                    "use_st_status_info": "Use as informações de status da TV SmartThings",
+                    "use_st_channel_info": "Use as informações dos canais de TV SmartThings",
+                    "show_channel_number": "Use as informações de número dos canais de TV SmartThings",
+                    "power_on_method": "Método usado para ligar a TV",
+                    "logo_option": "Exiba uma logo para fontes, aplicativos e canais conhecidos",
+                    "sync_turn_off": "Lista de entidades para desligar com a TV",
+                    "sync_turn_on": "Lista de entidades para ligar com a TV",
+                    "show_adv_opt": "Mostrar opções avançadas"
+                }
+            },
+            "adv_opt": {
+                "title": "Opções avançadas",
+                "data": {
+                    "app_load_method": "Modo de carregamento da lista de aplicativos na inicialização",
+                    "app_launch_method": "Método usado na inicialização de aplicativos",
+                    "dump_apps": "Despejar a lista de aplicativos no arquivo de log na inicialização (quando possível)",
+                    "use_mute_check": "Use o status de volume mudo para detectar um falso status de LIGADO",
+                    "wol_repeat": "Número de tempo que o pacote WOL é enviado para ligar a TV",
+                    "power_on_delay": "Segundos de delay para o status LIGADO",
+                    "ping_port": "Porta TCP usada para verificar o status ligado/desligado (0 para ICMP)",
+                    "ext_power_entity": "Binary sensor para ajudar a detectar o status de energia"
+                }
+            }
+        }
+    }
+}
