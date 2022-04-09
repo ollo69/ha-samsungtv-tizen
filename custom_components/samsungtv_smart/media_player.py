@@ -504,7 +504,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         ext_state = self.hass.states.get(ext_entity)
         if not ext_state:
             return True
-        return ext_state.state == STATE_ON
+        return ext_state.state != STATE_OFF
 
     def _ping_device(self):
         """Ping TV with WS and others method to check power status."""
