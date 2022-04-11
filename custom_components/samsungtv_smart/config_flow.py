@@ -51,6 +51,7 @@ from .const import (
     CONF_USE_MUTE_CHECK,
     CONF_USE_ST_CHANNEL_INFO,
     CONF_USE_ST_STATUS_INFO,
+    CONF_USE_POWER_OFF_TO_ART_MODE,
     CONF_WOL_REPEAT,
     CONF_WS_NAME,
     DEFAULT_POWER_ON_DELAY,
@@ -459,6 +460,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Required(
                     CONF_USE_ST_CHANNEL_INFO,
                     default=options.get(CONF_USE_ST_CHANNEL_INFO, True),
+                ): bool,
+                vol.Required(
+                    CONF_USE_POWER_OFF_TO_ART_MODE,
+                    default=options.get(CONF_USE_POWER_OFF_TO_ART_MODE, False),
                 ): bool,
                 vol.Required(
                     CONF_SHOW_CHANNEL_NR,

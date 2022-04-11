@@ -92,6 +92,7 @@ from .const import (
     CONF_USE_MUTE_CHECK,
     CONF_USE_ST_CHANNEL_INFO,
     CONF_USE_ST_STATUS_INFO,
+    CONF_USE_POWER_OFF_TO_ART_MODE,
     CONF_WOL_REPEAT,
     CONF_WS_NAME,
     DATA_CFG_YAML,
@@ -1174,7 +1175,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def async_set_art_mode(self):
         """Turn the media player on setting in art mode."""
-        await self._async_turn_on(True)
+        return await self._async_turn_on(True)
 
     def _turn_off(self):
         """Turn off media player."""
@@ -1201,8 +1202,11 @@ class SamsungTVDevice(MediaPlayerEntity):
         return True
 
     async def async_turn_off(self):
-        """Turn the media player on."""
-        result = await self.hass.async_add_executor_job(self._turn_off)
+        """Turn the media player off."""
+        if self._get_option(CONF_USE_POWER_OFF_TO_ART_MODE, False):
+            result = await self.async_set_art_mode()
+        else:
+            result = await self.hass.async_add_executor_job(self._turn_off)
         if result:
             await self._async_switch_entity(False)
 
