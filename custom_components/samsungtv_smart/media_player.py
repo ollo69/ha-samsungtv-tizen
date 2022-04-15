@@ -17,30 +17,19 @@ from .api.smartthings import SmartThingsTV, STStatus
 from .api.upnp import upnp
 
 from homeassistant.components import media_source
+from homeassistant.components.media_player import (
+    MediaPlayerDeviceClass,
+    MediaPlayerEntity,
+    MediaPlayerEntityFeature,
+)
 from homeassistant.components.media_player.browse_media import async_process_play_media_url
-from homeassistant.components.media_player import DEVICE_CLASS_TV, MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     MEDIA_TYPE_APP,
     MEDIA_TYPE_CHANNEL,
     MEDIA_TYPE_URL,
     MEDIA_TYPE_VIDEO,
-    SUPPORT_BROWSE_MEDIA,
-    SUPPORT_NEXT_TRACK,
-    SUPPORT_PAUSE,
-    SUPPORT_PLAY,
-    SUPPORT_PLAY_MEDIA,
-    SUPPORT_PREVIOUS_TRACK,
-    SUPPORT_SELECT_SOUND_MODE,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_STOP,
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_SET,
-    SUPPORT_VOLUME_STEP,
 )
 from homeassistant.config_entries import ConfigEntry
-
 from homeassistant.const import (
     ATTR_SW_VERSION,
     CONF_API_KEY,
@@ -153,18 +142,18 @@ MAX_CONTROLLED_ENTITY = 4
 MIN_TIME_BETWEEN_APP_SCANS = timedelta(seconds=60)
 
 SUPPORT_SAMSUNGTV_SMART = (
-    SUPPORT_PAUSE
-    | SUPPORT_VOLUME_SET
-    | SUPPORT_VOLUME_STEP
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_PREVIOUS_TRACK
-    | SUPPORT_NEXT_TRACK
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_TURN_OFF
-    | SUPPORT_TURN_ON
-    | SUPPORT_PLAY
-    | SUPPORT_PLAY_MEDIA
-    | SUPPORT_STOP
+    MediaPlayerEntityFeature.PAUSE
+    | MediaPlayerEntityFeature.VOLUME_SET
+    | MediaPlayerEntityFeature.VOLUME_STEP
+    | MediaPlayerEntityFeature.VOLUME_MUTE
+    | MediaPlayerEntityFeature.PREVIOUS_TRACK
+    | MediaPlayerEntityFeature.NEXT_TRACK
+    | MediaPlayerEntityFeature.SELECT_SOURCE
+    | MediaPlayerEntityFeature.TURN_OFF
+    | MediaPlayerEntityFeature.TURN_ON
+    | MediaPlayerEntityFeature.PLAY
+    | MediaPlayerEntityFeature.PLAY_MEDIA
+    | MediaPlayerEntityFeature.STOP
 )
 
 SCAN_INTERVAL = timedelta(seconds=15)
@@ -266,7 +255,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._attr_name = config.get(CONF_NAME, self._host)
         self._attr_unique_id = unique_id
         self._attr_icon = "mdi:television"
-        self._attr_device_class = DEVICE_CLASS_TV
+        self._attr_device_class = MediaPlayerDeviceClass.TV
         self._attr_media_title = None
         self._attr_media_image_url = None
         self._attr_media_image_remotely_accessible = False
@@ -984,9 +973,9 @@ class SamsungTVDevice(MediaPlayerEntity):
         """Flag media player features that are supported."""
         features = SUPPORT_SAMSUNGTV_SMART
         if self.state == STATE_ON:
-            features |= SUPPORT_BROWSE_MEDIA
+            features |= MediaPlayerEntityFeature.BROWSE_MEDIA
         if self._st:
-            features |= SUPPORT_SELECT_SOUND_MODE
+            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
         return features
 
     @property
