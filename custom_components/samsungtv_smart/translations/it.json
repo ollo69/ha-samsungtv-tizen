@@ -73,7 +73,8 @@
                     "wol_repeat": "Numero di volte che il pacchetto WOL viene inviato per accendere la TV",
                     "power_on_delay": "Secondi di ritardo per passaggio allo stato ON",
                     "ping_port": "Porta TCP usata per identificare lo stato (0 per ICMP)",
-                    "ext_power_entity": "Binary sensor usato per aiutare a identificare lo stato"
+                    "ext_power_entity": "Binary sensor usato per aiutare a identificare lo stato",
+                    "toggle_art_mode": "Pulsante di accensione passa a art mode (solo per Frame TV)"
                 }
             }
         }

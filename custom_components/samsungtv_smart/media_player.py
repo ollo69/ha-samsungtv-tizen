@@ -77,6 +77,7 @@ from .const import (
     CONF_SOURCE_LIST,
     CONF_SYNC_TURN_OFF,
     CONF_SYNC_TURN_ON,
+    CONF_TOGGLE_ART_MODE,
     CONF_USE_LOCAL_LOGO,
     CONF_USE_MUTE_CHECK,
     CONF_USE_ST_CHANNEL_INFO,
@@ -1194,6 +1195,14 @@ class SamsungTVDevice(MediaPlayerEntity):
         result = await self.hass.async_add_executor_job(self._turn_off)
         if result:
             await self._async_switch_entity(False)
+
+    async def async_toggle(self):
+        """Toggle the power on the media player."""
+        if self.state == STATE_ON and self._ws.artmode_status != ArtModeStatus.Unsupported:
+            if self._get_option(CONF_TOGGLE_ART_MODE, False):
+                await self.async_set_art_mode()
+                return
+        await super().async_toggle()
 
     async def async_volume_up(self):
         """Volume up the media player."""

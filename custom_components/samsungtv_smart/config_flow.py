@@ -47,6 +47,7 @@ from .const import (
     CONF_SHOW_CHANNEL_NR,
     CONF_SYNC_TURN_OFF,
     CONF_SYNC_TURN_ON,
+    CONF_TOGGLE_ART_MODE,
     CONF_USE_LOCAL_LOGO,
     CONF_USE_MUTE_CHECK,
     CONF_USE_ST_CHANNEL_INFO,
@@ -106,6 +107,7 @@ ADVANCED_OPTIONS = [
     CONF_PING_PORT,
     CONF_WOL_REPEAT,
     CONF_POWER_ON_DELAY,
+    CONF_TOGGLE_ART_MODE,
     CONF_USE_MUTE_CHECK,
 ]
 
@@ -533,6 +535,10 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             vol.Required(
                 CONF_USE_MUTE_CHECK,
                 default=options.get(CONF_USE_MUTE_CHECK, True),
+            ): bool,
+            vol.Required(
+                CONF_TOGGLE_ART_MODE,
+                default=options.get(CONF_TOGGLE_ART_MODE, False),
             ): bool,
         }
 

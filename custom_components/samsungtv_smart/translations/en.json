@@ -73,7 +73,8 @@
                     "wol_repeat": "Number of time WOL packet is sent to turn on TV",
                     "power_on_delay": "Seconds to delay power ON status",
                     "ping_port": "TCP port used to check power status (0 for ICMP)",
-                    "ext_power_entity": "Binary sensor to help detect power status"
+                    "ext_power_entity": "Binary sensor to help detect power status",
+                    "toggle_art_mode": "Power button switch to art mode (Frame TV only)"
                 }
             }
         }
