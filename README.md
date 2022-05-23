@@ -211,6 +211,13 @@ because this method is already implemented by the integration.</br>
 When enabled try to detect fake power on based on the Volume mute state, based on the assumption that when the
 TV is powered on the volume is always unmuted.<br/>
 
+- **Power button switch to art mode**<br/>
+(default = False)<br/>
+When enabled the power button in UI will be used to toggle from `On` to `Art Mode` (and vice versa) and will not 
+power off the TV (you can still use the `turn off` service to power off the TV).<br/>
+**Note: This option is valid only for TV that support `Art Mode` ("The Frame" models).**<br>
+
+
 ## Custom configuration parameters
 
 You can configure additional option for the component using configuration variable in `configuration.yaml` section.<br/>

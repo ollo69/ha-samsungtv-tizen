@@ -17,32 +17,20 @@ from .api.smartthings import SmartThingsTV, STStatus
 from .api.upnp import upnp
 
 from homeassistant.components import media_source
+from homeassistant.components.media_player import (
+    MediaPlayerDeviceClass,
+    MediaPlayerEntity,
+    MediaPlayerEntityFeature,
+)
 from homeassistant.components.media_player.browse_media import async_process_play_media_url
-from homeassistant.components.media_player import DEVICE_CLASS_TV, MediaPlayerEntity
 from homeassistant.components.media_player.const import (
     MEDIA_TYPE_APP,
     MEDIA_TYPE_CHANNEL,
     MEDIA_TYPE_URL,
     MEDIA_TYPE_VIDEO,
-    SUPPORT_BROWSE_MEDIA,
-    SUPPORT_NEXT_TRACK,
-    SUPPORT_PAUSE,
-    SUPPORT_PLAY,
-    SUPPORT_PLAY_MEDIA,
-    SUPPORT_PREVIOUS_TRACK,
-    SUPPORT_SELECT_SOUND_MODE,
-    SUPPORT_SELECT_SOURCE,
-    SUPPORT_STOP,
-    SUPPORT_TURN_OFF,
-    SUPPORT_TURN_ON,
-    SUPPORT_VOLUME_MUTE,
-    SUPPORT_VOLUME_SET,
-    SUPPORT_VOLUME_STEP,
 )
 from homeassistant.config_entries import ConfigEntry
-
 from homeassistant.const import (
-    ATTR_SW_VERSION,
     CONF_API_KEY,
     CONF_BROADCAST_ADDRESS,
     CONF_DEVICE_ID,
@@ -88,6 +76,7 @@ from .const import (
     CONF_SOURCE_LIST,
     CONF_SYNC_TURN_OFF,
     CONF_SYNC_TURN_ON,
+    CONF_TOGGLE_ART_MODE,
     CONF_USE_LOCAL_LOGO,
     CONF_USE_MUTE_CHECK,
     CONF_USE_ST_CHANNEL_INFO,
@@ -154,18 +143,18 @@ MAX_CONTROLLED_ENTITY = 4
 MIN_TIME_BETWEEN_APP_SCANS = timedelta(seconds=60)
 
 SUPPORT_SAMSUNGTV_SMART = (
-    SUPPORT_PAUSE
-    | SUPPORT_VOLUME_SET
-    | SUPPORT_VOLUME_STEP
-    | SUPPORT_VOLUME_MUTE
-    | SUPPORT_PREVIOUS_TRACK
-    | SUPPORT_NEXT_TRACK
-    | SUPPORT_SELECT_SOURCE
-    | SUPPORT_TURN_OFF
-    | SUPPORT_TURN_ON
-    | SUPPORT_PLAY
-    | SUPPORT_PLAY_MEDIA
-    | SUPPORT_STOP
+    MediaPlayerEntityFeature.PAUSE
+    | MediaPlayerEntityFeature.VOLUME_SET
+    | MediaPlayerEntityFeature.VOLUME_STEP
+    | MediaPlayerEntityFeature.VOLUME_MUTE
+    | MediaPlayerEntityFeature.PREVIOUS_TRACK
+    | MediaPlayerEntityFeature.NEXT_TRACK
+    | MediaPlayerEntityFeature.SELECT_SOURCE
+    | MediaPlayerEntityFeature.TURN_OFF
+    | MediaPlayerEntityFeature.TURN_ON
+    | MediaPlayerEntityFeature.PLAY
+    | MediaPlayerEntityFeature.PLAY_MEDIA
+    | MediaPlayerEntityFeature.STOP
 )
 
 SCAN_INTERVAL = timedelta(seconds=15)
@@ -267,7 +256,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._attr_name = config.get(CONF_NAME, self._host)
         self._attr_unique_id = unique_id
         self._attr_icon = "mdi:television"
-        self._attr_device_class = DEVICE_CLASS_TV
+        self._attr_device_class = MediaPlayerDeviceClass.TV
         self._attr_media_title = None
         self._attr_media_image_url = None
         self._attr_media_image_remotely_accessible = False
@@ -389,7 +378,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
         dev_info = DeviceInfo(model=model)
         if dev_os:
-            dev_info[ATTR_SW_VERSION] = dev_os
+            dev_info["sw_version"] = dev_os
         if dev_mac:
             dev_info["connections"] = {(CONNECTION_NETWORK_MAC, dev_mac)}
 
@@ -505,7 +494,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         ext_state = self.hass.states.get(ext_entity)
         if not ext_state:
             return True
-        return ext_state.state == STATE_ON
+        return ext_state.state != STATE_OFF
 
     def _ping_device(self):
         """Ping TV with WS and others method to check power status."""
@@ -985,9 +974,9 @@ class SamsungTVDevice(MediaPlayerEntity):
         """Flag media player features that are supported."""
         features = SUPPORT_SAMSUNGTV_SMART
         if self.state == STATE_ON:
-            features |= SUPPORT_BROWSE_MEDIA
+            features |= MediaPlayerEntityFeature.BROWSE_MEDIA
         if self._st:
-            features |= SUPPORT_SELECT_SOUND_MODE
+            features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
         return features
 
     @property
@@ -1210,6 +1199,14 @@ class SamsungTVDevice(MediaPlayerEntity):
         if result:
             await self._async_switch_entity(False)
 
+    async def async_toggle(self):
+        """Toggle the power on the media player."""
+        if self.state == STATE_ON and self._ws.artmode_status != ArtModeStatus.Unsupported:
+            if self._get_option(CONF_TOGGLE_ART_MODE, False):
+                await self.async_set_art_mode()
+                return
+        await super().async_toggle()
+
     async def async_volume_up(self):
         """Volume up the media player."""
         if self._state != STATE_ON:
@@ -1429,17 +1426,17 @@ class SamsungTVDevice(MediaPlayerEntity):
             return None
 
         url_parsed = urlparse(url)
-        url_host = url_parsed.hostname.casefold()
+        url_host = str(url_parsed.hostname).casefold()
         if url_host.find("youtube") < 0:
             _LOGGER.debug("URL not related to Youtube")
             return None
 
         url_query = parse_qs(url_parsed.query)
-        if "v" not in url_query:
+        if b"v" not in url_query:
             _LOGGER.debug("Youtube video ID not found")
             return None
 
-        video_id = url_query["v"][0]
+        video_id = str(url_query[b"v"][0])
         _LOGGER.debug("Youtube video ID: %s", video_id)
         return video_id
 
@@ -1452,7 +1449,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         else:
             media_type = media_type.lower()
 
-        if media_type in [MEDIA_TYPE_BROWSER, MEDIA_TYPE_URL, MEDIA_TYPE_VIDEO]:
+        if media_type in [MEDIA_TYPE_BROWSER, MEDIA_TYPE_URL]:
             media_id = async_process_play_media_url(self.hass, media_id)
             try:
                 cv.url(media_id)
@@ -1478,23 +1475,26 @@ class SamsungTVDevice(MediaPlayerEntity):
 
             await self._async_send_keys(media_id)
 
-        # Open url in browser or youtube app
-        elif media_type in [MEDIA_TYPE_BROWSER, MEDIA_TYPE_URL]:
-            if media_type == MEDIA_TYPE_URL:
-                if video_id := self._get_youtube_video_id(media_id):
-                    await self._async_launch_app(self._yt_app_id, video_id)
-                    return
+        # Open url or youtube app
+        elif media_type == MEDIA_TYPE_URL:
+            if await self._upnp.async_set_current_media(media_id):
+                self._playing = True
+                return
+
+            if video_id := self._get_youtube_video_id(media_id):
+                await self._async_launch_app(self._yt_app_id, video_id)
+                return
+
             await self.async_send_command(media_id, CMD_OPEN_BROWSER)
 
-        # Play media
-        elif media_type == MEDIA_TYPE_VIDEO:
-            await self._upnp.async_set_current_media(media_id)
-            self._playing = True
+        # Open url in browser
+        elif media_type == MEDIA_TYPE_BROWSER:
+            await self.async_send_command(media_id, CMD_OPEN_BROWSER)
 
         # Trying to make stream component work on TV
         elif media_type == "application/vnd.apple.mpegurl":
-            await self._upnp.async_set_current_media(media_id)
-            self._playing = True
+            if await self._upnp.async_set_current_media(media_id):
+                self._playing = True
 
         elif media_type == MEDIA_TYPE_TEXT:
             await self.async_send_command(media_id, CMD_SEND_TEXT)

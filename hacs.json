@@ -3,5 +3,5 @@
   "content_in_root": false,
   "domains": ["media-player"],
   "iot_class": "cloud_poll",
-  "homeassistant": "2022.3.0"
+  "homeassistant": "2022.5.0"
 }

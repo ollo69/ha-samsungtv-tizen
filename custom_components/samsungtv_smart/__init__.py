@@ -14,7 +14,6 @@ from websocket import WebSocketException
 from .api.samsungws import ConnectionFailure, SamsungTVWS
 from .api.smartthings import SmartThingsTV
 
-from homeassistant.components.media_player.const import DOMAIN as MP_DOMAIN
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_ID,
@@ -30,6 +29,7 @@ from homeassistant.const import (
     CONF_TOKEN,
     MAJOR_VERSION,
     MINOR_VERSION,
+    Platform,
     __version__,
 )
 from homeassistant.core import callback, HomeAssistant
@@ -477,7 +477,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
     hass.data[DOMAIN][entry.entry_id][DATA_OPTIONS] = entry.options.copy()
 
-    hass.config_entries.async_setup_platforms(entry, [MP_DOMAIN])
+    hass.config_entries.async_setup_platforms(entry, [Platform.MEDIA_PLAYER])
 
     return True
 
@@ -485,7 +485,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, [MP_DOMAIN]
+        entry, [Platform.MEDIA_PLAYER]
     ):
         hass.data[DOMAIN][entry.entry_id].pop(DATA_OPTIONS)
         if not hass.data[DOMAIN][entry.entry_id]:

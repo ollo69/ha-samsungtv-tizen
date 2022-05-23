@@ -21,10 +21,7 @@ class upnp:
             self._session = ClientSession()
             self._managed_session = True
 
-    def __enter__(self):
-        return self
-
-    async def _SOAPrequest(self, action, arguments, protocole):
+    async def _SOAPrequest(self, action, arguments, protocole, *, timeout=DEFAULT_TIMEOUT):
         headers = {
             "SOAPAction": f'"urn:schemas-upnp-org:service:{protocole}:1#{action}"',
             "content-type": "text/xml",
@@ -38,9 +35,8 @@ class upnp:
                     </u:{action}>
                     </s:Body>
                 </s:Envelope>"""
-        response = None
         try:
-            async with async_timeout.timeout(DEFAULT_TIMEOUT):
+            async with async_timeout.timeout(timeout):
                 async with self._session.post(
                     f"http://{self._host}:9197/upnp/control/{protocole}1",
                     headers=headers,
@@ -49,14 +45,20 @@ class upnp:
                 ) as resp:
                     response = await resp.content.read()
                     self._connected = True
-        except:
+        except Exception as exc:
+            _LOGGER.debug(exc)
             self._connected = False
+            return None
 
         return response
 
     @property
     def connected(self):
         return self._connected
+
+    async def async_disconnect(self):
+        if self._managed_session:
+            await self._session.close()
 
     async def async_get_volume(self):
         response = await self._SOAPrequest(
@@ -95,19 +97,18 @@ class upnp:
 
     async def async_set_current_media(self, url):
         """ Set media to playback and play it."""
-        try:
-            await self._SOAPrequest(
-                "SetAVTransportURI",
-                f"<CurrentURI>{url}</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>",
-                "AVTransport",
-            )
-            await self._SOAPrequest("Play", "<Speed>1</Speed>", "AVTransport")
-        except Exception:
-            pass
+
+        if await self._SOAPrequest(
+            "SetAVTransportURI",
+            f"<CurrentURI>{url}</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>",
+            "AVTransport",
+            timeout=2.0,
+        ) is None:
+            return False
+
+        await self._SOAPrequest("Play", "<Speed>1</Speed>", "AVTransport")
+        return True
 
     async def async_play(self):
         """ Play media that was already set as current."""
-        try:
-            await self._SOAPrequest("Play", "<Speed>1</Speed>", "AVTransport")
-        except Exception:
-            pass
+        await self._SOAPrequest("Play", "<Speed>1</Speed>", "AVTransport")
