@@ -58,7 +58,6 @@ CONF_USE_LOCAL_LOGO = "use_local_logo"
 CONF_USE_MUTE_CHECK = "use_mute_check"
 CONF_USE_ST_CHANNEL_INFO = "use_st_channel_info"
 CONF_USE_ST_STATUS_INFO = "use_st_status_info"
-CONF_USE_POWER_OFF_TO_ART_MODE = "use_power_off_to_art_mode"
 CONF_WOL_REPEAT = "wol_repeat"
 CONF_WS_NAME = "ws_name"
 

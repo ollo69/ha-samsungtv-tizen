@@ -54,7 +54,6 @@
                 "data": {
                     "use_st_status_info": "Use as informações de status da TV SmartThings",
                     "use_st_channel_info": "Use as informações dos canais de TV SmartThings",
-                    "use_power_off_to_art_mode": "Desligue a TV no modo de arte",
                     "show_channel_number": "Use as informações de número dos canais de TV SmartThings",
                     "power_on_method": "Método usado para ligar a TV",
                     "logo_option": "Exiba uma logo para fontes, aplicativos e canais conhecidos",
