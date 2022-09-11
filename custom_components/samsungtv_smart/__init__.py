@@ -4,7 +4,6 @@ from __future__ import annotations
 from aiohttp import ClientConnectionError, ClientSession, ClientResponseError
 import asyncio
 import async_timeout
-from collections.abc import Iterable
 import logging
 import os
 from pathlib import Path
@@ -147,18 +146,6 @@ def is_min_ha_version(min_ha_major_ver: int, min_ha_minor_ver: int) -> bool:
         MAJOR_VERSION > min_ha_major_ver or
         (MAJOR_VERSION == min_ha_major_ver and MINOR_VERSION >= min_ha_minor_ver)
     )
-
-
-async def async_setup_entity_platforms(
-    hass: HomeAssistant,
-    config_entry: ConfigEntry,
-    platforms: Iterable[Platform | str],
-) -> None:
-    """Set up entity platforms using new method from HA version 2022.8."""
-    if is_min_ha_version(2022, 8):
-        await hass.config_entries.async_forward_entry_setups(config_entry, platforms)
-    else:
-        hass.config_entries.async_setup_platforms(config_entry, platforms)
 
 
 def is_valid_ha_version() -> bool:
@@ -496,7 +483,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
     hass.data[DOMAIN][entry.entry_id][DATA_OPTIONS] = entry.options.copy()
 
-    await async_setup_entity_platforms(hass, entry, [Platform.MEDIA_PLAYER])
+    await hass.config_entries.async_forward_entry_setups(entry, [Platform.MEDIA_PLAYER])
 
     return True
 
