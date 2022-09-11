@@ -21,14 +21,10 @@ from homeassistant.components.media_player import (
     MediaPlayerDeviceClass,
     MediaPlayerEntity,
     MediaPlayerEntityFeature,
+    MediaPlayerState,
+    MediaType,
 )
 from homeassistant.components.media_player.browse_media import async_process_play_media_url
-from homeassistant.components.media_player.const import (
-    MEDIA_TYPE_APP,
-    MEDIA_TYPE_CHANNEL,
-    MEDIA_TYPE_URL,
-    MEDIA_TYPE_VIDEO,
-)
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     CONF_API_KEY,
@@ -314,7 +310,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._yt_app_id = None
         # Assume that the TV is in Play mode
         self._playing = True
-        self._state = STATE_OFF
+        self._state = MediaPlayerState.OFF
         # Mark the end of a shutdown command (need to wait 15 seconds before
         # sending the next command to avoid turning the TV back ON).
         self._started_up = False
@@ -464,14 +460,14 @@ class SamsungTVDevice(MediaPlayerEntity):
         if self._set_update_forced <= 0:
             return
 
-        if self._state == STATE_ON:
+        if self._state == MediaPlayerState.ON:
             self._set_update_forced = 0
             return
 
         @callback
         def update_status(_):
             self._delay_status_update = False
-            if self._state != STATE_ON:
+            if self._state != MediaPlayerState.ON:
                 self.async_schedule_update_ha_state(True)
             else:
                 self._set_update_forced = 0
@@ -481,7 +477,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     def _delay_power_on(self, result):
         """Manage delay for power on status."""
-        if result and self._state == STATE_OFF:
+        if result and self._state == MediaPlayerState.OFF:
 
             power_on_delay = self._get_option(
                 CONF_POWER_ON_DELAY, DEFAULT_POWER_ON_DELAY
@@ -504,7 +500,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def _update_volume_info(self):
         """Update the volume info."""
-        if self._state == STATE_ON:
+        if self._state == MediaPlayerState.ON:
 
             # if self._st and self._setvolumebyst:
             #     self._attr_volume_level = self._st.volume
@@ -533,7 +529,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             if (
                 self._st.state == STStatus.STATE_OFF and
                 self._st.prev_state != STStatus.STATE_OFF and
-                self._state == STATE_ON and use_st_status
+                self._state == MediaPlayerState.ON and use_st_status
             ):
                 result = False
 
@@ -574,7 +570,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     def _get_st_sources(self):
         """Get sources from SmartThings."""
-        if self._state != STATE_ON or not self._st:
+        if self._state != MediaPlayerState.ON or not self._st:
             _LOGGER.debug(
                 "Samsung TV is OFF or SmartThings not configured, _get_st_sources not executed"
             )
@@ -680,7 +676,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     def _get_source(self):
         """Return the current input source."""
-        if self.state != STATE_ON:
+        if self.state != MediaPlayerState.ON:
             self._source = None
             return self._source
 
@@ -797,7 +793,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         else:
             use_mute_check = self._get_option(CONF_USE_MUTE_CHECK, True)
 
-        if use_mute_check and self._state == STATE_OFF:
+        if use_mute_check and self._state == MediaPlayerState.OFF:
             first_detect = self._fake_on is None
             if first_detect or self._fake_on is True:
                 if (is_muted := await self._upnp.async_get_mute()) is None:
@@ -819,11 +815,11 @@ class SamsungTVDevice(MediaPlayerEntity):
                 st_error = True
         self._log_st_error(st_error)
 
-        self._state = STATE_ON if result else STATE_OFF
+        self._state = MediaPlayerState.ON if result else MediaPlayerState.OFF
         self._started_up = True
         self._delay_update(POWER_ON_DELAY)
 
-        if self.state == STATE_ON:  # NB: We are checking properties, not attribute!
+        if self.state == MediaPlayerState.ON:  # NB: We are checking properties, not attribute!
             if self._delayed_set_source:
                 difference = (datetime.utcnow() - self._delayed_set_source_time).total_seconds()
                 if difference > DELAYED_SOURCE_TIMEOUT:
@@ -834,7 +830,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             self._get_running_app()
             await self._update_media()
 
-        if self._state == STATE_OFF:
+        if self._state == MediaPlayerState.OFF:
             self._end_of_power_off = None
 
     def send_command(
@@ -962,7 +958,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     def _get_new_media_title(self):
         """Get the current media title."""
-        if self._state != STATE_ON:
+        if self._state != MediaPlayerState.ON:
             return None
 
         if self._running_app == DEFAULT_APP:
@@ -1005,7 +1001,7 @@ class SamsungTVDevice(MediaPlayerEntity):
     def supported_features(self) -> int:
         """Flag media player features that are supported."""
         features = SUPPORT_SAMSUNGTV_SMART
-        if self.state == STATE_ON:
+        if self.state == MediaPlayerState.ON:
             features |= MediaPlayerEntityFeature.BROWSE_MEDIA
         if self._st:
             features |= MediaPlayerEntityFeature.SELECT_SOUND_MODE
@@ -1014,7 +1010,7 @@ class SamsungTVDevice(MediaPlayerEntity):
     @property
     def media_channel(self):
         """Channel currently playing."""
-        if self._state == STATE_ON:
+        if self._state == MediaPlayerState.ON:
             if self._st:
                 if self._st.source in ["digitalTv", "TV"] and self._st.channel != "":
                     return self._st.channel
@@ -1023,18 +1019,18 @@ class SamsungTVDevice(MediaPlayerEntity):
     @property
     def media_content_type(self):
         """Return the content type of current playing media."""
-        if self._state == STATE_ON:
+        if self._state == MediaPlayerState.ON:
             if self._running_app == DEFAULT_APP:
                 if self.media_channel:
-                    return MEDIA_TYPE_CHANNEL
-                return MEDIA_TYPE_VIDEO
-            return MEDIA_TYPE_APP
+                    return MediaType.CHANNEL
+                return MediaType.VIDEO
+            return MediaType.APP
         return None
 
     @property
     def app_id(self):
         """ID of the current running app."""
-        if self._state != STATE_ON:
+        if self._state != MediaPlayerState.ON:
             return None
 
         if self._app_list_ST and self._running_app != DEFAULT_APP:
@@ -1054,7 +1050,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         # so for 20 seconds (defined in POWER_OFF_DELAY) the state will be off regardless of the actual state.
         # This is to have better feedback to the command in the UI, but the logic might cause other issues in the future
         if self._power_off_in_progress():
-            return STATE_OFF
+            return MediaPlayerState.OFF
 
         return self._state
 
@@ -1140,7 +1136,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             if self._ws.artmode_status == ArtModeStatus.Off:
                 # art mode from on
                 await self.async_send_command(cmd_power_art)
-                self._state = STATE_OFF
+                self._state = MediaPlayerState.OFF
                 return True
 
         if self._ws.artmode_status == ArtModeStatus.On:
@@ -1150,7 +1146,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             await self.async_send_command(cmd_power_art)
             return True
 
-        if self.state != STATE_OFF:
+        if self.state != MediaPlayerState.OFF:
             return False
 
         result = True
@@ -1167,7 +1163,7 @@ class SamsungTVDevice(MediaPlayerEntity):
                 )
 
         if result:
-            self._state = STATE_OFF
+            self._state = MediaPlayerState.OFF
             self._end_of_power_off = None
             self._ws.set_power_on_request(set_art_mode)
 
@@ -1178,7 +1174,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._delayed_set_source = None
         if not await self._async_power_on(set_art_mode):
             return False
-        if self._state != STATE_OFF:
+        if self._state != MediaPlayerState.OFF:
             return True
 
         self._set_update_forced = 2  # we try to check status 2 times in a shorter interval
@@ -1203,7 +1199,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         cmd_power_off = "KEY_POWER"
         cmd_power_art = "KEY_POWER"
         self._ws.set_power_off_request()
-        if self._state == STATE_ON:
+        if self._state == MediaPlayerState.ON:
             if self._ws.artmode_status == ArtModeStatus.Unsupported:
                 self.send_command(cmd_power_off)
             else:
@@ -1227,7 +1223,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def async_toggle(self):
         """Toggle the power on the media player."""
-        if self.state == STATE_ON and self._ws.artmode_status != ArtModeStatus.Unsupported:
+        if self.state == MediaPlayerState.ON and self._ws.artmode_status != ArtModeStatus.Unsupported:
             if self._get_option(CONF_TOGGLE_ART_MODE, False):
                 await self.async_set_art_mode()
                 return
@@ -1235,7 +1231,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def async_volume_up(self):
         """Volume up the media player."""
-        if self._state != STATE_ON:
+        if self._state != MediaPlayerState.ON:
             return
         await self.async_send_command("KEY_VOLUP")
         if self.volume_level is not None:
@@ -1243,7 +1239,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def async_volume_down(self):
         """Volume down media player."""
-        if self._state != STATE_ON:
+        if self._state != MediaPlayerState.ON:
             return
         await self.async_send_command("KEY_VOLDOWN")
         if self.volume_level is not None:
@@ -1251,7 +1247,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def async_mute_volume(self, mute):
         """Send mute command."""
-        if self._state != STATE_ON:
+        if self._state != MediaPlayerState.ON:
             return
         if self.is_volume_muted is not None and mute == self.is_volume_muted:
             return
@@ -1261,7 +1257,7 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     async def async_set_volume_level(self, volume):
         """Set the volume level."""
-        if self._state != STATE_ON:
+        if self._state != MediaPlayerState.ON:
             return
         if self.volume_level is None:
             return
@@ -1367,7 +1363,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         """Set a specific channel."""
 
         if channel.startswith("http"):
-            await self.async_play_media(MEDIA_TYPE_URL, channel)
+            await self.async_play_media(MediaType.URL, channel)
             return True
 
         channel_cmd = channel.split("@")
@@ -1469,13 +1465,13 @@ class SamsungTVDevice(MediaPlayerEntity):
     async def async_play_media(self, media_type, media_id, **kwargs):
         """Support running different media type command."""
         if media_source.is_media_source_id(media_id):
-            media_type = MEDIA_TYPE_URL
+            media_type = MediaType.URL
             play_item = await media_source.async_resolve_media(self.hass, media_id)
             media_id = play_item.url
         else:
             media_type = media_type.lower()
 
-        if media_type in [MEDIA_TYPE_BROWSER, MEDIA_TYPE_URL]:
+        if media_type in [MEDIA_TYPE_BROWSER, MediaType.URL]:
             media_id = async_process_play_media_url(self.hass, media_id)
             try:
                 cv.url(media_id)
@@ -1484,11 +1480,11 @@ class SamsungTVDevice(MediaPlayerEntity):
                 return
 
         # Type channel
-        if media_type == MEDIA_TYPE_CHANNEL:
+        if media_type == MediaType.CHANNEL:
             await self._async_set_channel(media_id)
 
         # Launch an app
-        elif media_type == MEDIA_TYPE_APP:
+        elif media_type == MediaType.APP:
             await self._async_launch_app(media_id)
 
         # Send custom key
@@ -1502,7 +1498,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             await self._async_send_keys(media_id)
 
         # Open url or youtube app
-        elif media_type == MEDIA_TYPE_URL:
+        elif media_type == MediaType.URL:
             if await self._upnp.async_set_current_media(media_id):
                 self._playing = True
                 return
@@ -1543,7 +1539,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         running_app = DEFAULT_APP
         self._delayed_set_source = None
 
-        if self.state != STATE_ON:
+        if self.state != MediaPlayerState.ON:
             if await self._async_turn_on():
                 self._delayed_set_source = source
                 self._delayed_set_source_time = datetime.utcnow()
