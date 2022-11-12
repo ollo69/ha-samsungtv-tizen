@@ -69,6 +69,7 @@ from .const import (
     CONF_PING_PORT,
     CONF_POWER_ON_DELAY,
     CONF_POWER_ON_METHOD,
+    CONF_POWER_ON_SERVICE_DATA,
     CONF_SHOW_CHANNEL_NR,
     CONF_SOURCE_LIST,
     CONF_SYNC_TURN_OFF,
@@ -1177,6 +1178,11 @@ class SamsungTVDevice(MediaPlayerEntity):
 
             if turn_on_method == PowerOnMethod.SmartThings and self._st:
                 await self._st.async_turn_on()
+            elif turn_on_method == PowerOnMethod.Service:
+                service_data = json.loads(self._get_option(CONF_POWER_ON_SERVICE_DATA, "{}"))
+                await async_call_from_config(
+                    self.hass, service_data, blocking=False, validate_config=True,
+                )
             else:
                 result = await self.hass.async_add_executor_job(self._send_wol_packet)
 

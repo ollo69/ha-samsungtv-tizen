@@ -17,6 +17,7 @@ class AppLaunchMethod(Enum):
 class PowerOnMethod(Enum):
     WOL = 1
     SmartThings = 2
+    Service = 3
 
 
 DOMAIN = "samsungtv_smart"
@@ -49,6 +50,7 @@ CONF_LOGO_OPTION = "logo_option"
 CONF_PING_PORT = "ping_port"
 CONF_POWER_ON_DELAY = "power_on_delay"
 CONF_POWER_ON_METHOD = "power_on_method"
+CONF_POWER_ON_SERVICE_DATA = "power_on_service_data"
 CONF_SHOW_CHANNEL_NR = "show_channel_number"
 CONF_SOURCE_LIST = "source_list"
 CONF_SYNC_TURN_OFF = "sync_turn_off"
