@@ -32,16 +32,12 @@ async def async_get_config_entry_diagnostics(
 
 
 @callback
-def _async_device_ha_info(
-    hass: HomeAssistant, device_id: str
-) -> dict | None:
+def _async_device_ha_info(hass: HomeAssistant, device_id: str) -> dict | None:
     """Gather information how this TV device is represented in Home Assistant."""
 
     device_registry = dr.async_get(hass)
     entity_registry = er.async_get(hass)
-    hass_device = device_registry.async_get_device(
-        identifiers={(DOMAIN, device_id)}
-    )
+    hass_device = device_registry.async_get_device(identifiers={(DOMAIN, device_id)})
     if not hass_device:
         return None
 

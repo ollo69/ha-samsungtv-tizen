@@ -103,10 +103,10 @@ class Ping:
     def _ping(self):
         """Send ICMP echo request and return True if success."""
         with subprocess.Popen(
-                self._ping_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
+            self._ping_cmd, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL
         ) as pinger:
             try:
-                pinger.communicate(timeout=1+PING_TIMEOUT)
+                pinger.communicate(timeout=1 + PING_TIMEOUT)
                 return pinger.returncode == 0
             except subprocess.TimeoutExpired:
                 kill_subprocess(pinger)
@@ -117,27 +117,31 @@ class Ping:
     def _ping_socket(self, port):
         """Check if port is available and return True if success."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(PING_TIMEOUT-1)
+            s.settimeout(PING_TIMEOUT - 1)
             return s.connect_ex((self._ip_address, port)) == 0
 
 
 class ConnectionFailure(Exception):
     """Error during connection."""
+
     pass
 
 
 class ResponseError(Exception):
     """Error in response."""
+
     pass
 
 
 class HttpApiError(Exception):
     """Error using HTTP API."""
+
     pass
 
 
 class App:
     """Define a TV Application."""
+
     def __init__(self, app_id, app_name, app_type):
         self.app_id = app_id
         self.app_name = app_name
@@ -146,6 +150,7 @@ class App:
 
 class ArtModeStatus(Enum):
     """Define possible ArtMode status."""
+
     Unsupported = 0
     Unavailable = 1
     Off = 2
@@ -275,7 +280,9 @@ class SamsungTVWS:
         if self._new_token_callback is not None:
             self._new_token_callback()
 
-    def _ws_send(self, command, key_press_delay=None, *, use_control=False, ws_socket=None):
+    def _ws_send(
+        self, command, key_press_delay=None, *, use_control=False, ws_socket=None
+    ):
         using_remote = False
         if not use_control:
             if self._ws_remote:
@@ -326,9 +333,7 @@ class SamsungTVWS:
             else:
                 return requests.get(url, timeout=self.timeout)
         except requests.ConnectionError:
-            raise HttpApiError(
-                "TV unreachable or feature not supported on this model."
-            )
+            raise HttpApiError("TV unreachable or feature not supported on this model.")
 
     @staticmethod
     def _process_api_response(response, *, raise_error=True):
@@ -368,19 +373,14 @@ class SamsungTVWS:
     ) -> None:
         """Call method run_forever changing library log level before."""
         _set_ws_logger_level()
-        ws_app.run_forever(
-            sslopt=sslopt, ping_interval=ping_interval
-        )
+        ws_app.run_forever(sslopt=sslopt, ping_interval=ping_interval)
 
     def _client_remote_thread(self):
         if self._ws_remote:
             return
 
         is_ssl = self._is_ssl_connection()
-        url = self._format_websocket_url(
-            _WS_ENDPOINT_REMOTE_CONTROL,
-            is_ssl=is_ssl
-        )
+        url = self._format_websocket_url(_WS_ENDPOINT_REMOTE_CONTROL, is_ssl=is_ssl)
         sslopt = {"cert_reqs": ssl.CERT_NONE} if is_ssl else {}
 
         websocket.setdefaulttimeout(self.timeout)
@@ -392,9 +392,7 @@ class SamsungTVWS:
         _LOGGING.debug("Thread SamsungRemote started")
         # we set ping interval (1 hour) only to enable multi-threading mode
         # on socket. TV do not answer to ping but send ping to client
-        self._run_forever(
-            self._ws_remote, sslopt=sslopt, ping_interval=3600
-        )
+        self._run_forever(self._ws_remote, sslopt=sslopt, ping_interval=3600)
         self._is_connected = False
         if self._ws_art:
             self._ws_art.close()
@@ -467,9 +465,7 @@ class SamsungTVWS:
 
         is_ssl = self._is_ssl_connection()
         url = self._format_websocket_url(
-            _WS_ENDPOINT_APP_CONTROL,
-            is_ssl=is_ssl,
-            use_token=False
+            _WS_ENDPOINT_APP_CONTROL, is_ssl=is_ssl, use_token=False
         )
         sslopt = {"cert_reqs": ssl.CERT_NONE} if is_ssl else {}
 
@@ -482,9 +478,7 @@ class SamsungTVWS:
         _LOGGING.debug("Thread SamsungControl started")
         # we set ping interval (1 hour) only to enable multi-threading mode
         # on socket. TV do not answer to ping but send ping to client
-        self._run_forever(
-            self._ws_control, sslopt=sslopt, ping_interval=3600
-        )
+        self._run_forever(self._ws_control, sslopt=sslopt, ping_interval=3600)
         self._ws_control.close()
         self._ws_control = None
         _LOGGING.debug("Thread SamsungControl terminated")
@@ -593,9 +587,7 @@ class SamsungTVWS:
 
         is_ssl = self._is_ssl_connection()
         url = self._format_websocket_url(
-            _WS_ENDPOINT_ART,
-            is_ssl=is_ssl,
-            use_token=False
+            _WS_ENDPOINT_ART, is_ssl=is_ssl, use_token=False
         )
         sslopt = {"cert_reqs": ssl.CERT_NONE} if is_ssl else {}
 
@@ -608,9 +600,7 @@ class SamsungTVWS:
         _LOGGING.debug("Thread SamsungArt started")
         # we set ping interval (1 hour) only to enable multi-threading mode
         # on socket. TV do not answer to ping but send ping to client
-        self._run_forever(
-            self._ws_art, sslopt=sslopt, ping_interval=3600
-        )
+        self._run_forever(self._ws_art, sslopt=sslopt, ping_interval=3600)
         self._ws_art.close()
         self._ws_art = None
         _LOGGING.debug("Thread SamsungArt terminated")
@@ -721,9 +711,9 @@ class SamsungTVWS:
 
     def ping_device(self, port=0):
         """Ping TV device to check current status, and return boolean.
-            If port is specified, try to open specific port
-            for check, otherwise it uses ICMP echo
-            If check is True, try to open WS connection
+        If port is specified, try to open specific port
+        for check, otherwise it uses ICMP echo
+        If check is True, try to open WS connection
         """
         result = self._ping.ping(port)
         # check ws ping/pong
@@ -774,7 +764,9 @@ class SamsungTVWS:
         with self._sync_lock:
             call_time = datetime.utcnow()
             difference = (call_time - self._last_app_scan).total_seconds()
-            if (difference < MIN_APP_SCAN_INTERVAL and not force_scan) or difference < 1:
+            if (
+                difference < MIN_APP_SCAN_INTERVAL and not force_scan
+            ) or difference < 1:
                 return
             self._last_app_scan = call_time
 
@@ -814,8 +806,9 @@ class SamsungTVWS:
                 self._client_control.setDaemon(True)
                 self._client_control.start()
 
-            if self._client_art_supported > 0 and \
-               (self._client_art is None or not self._client_art.is_alive()):
+            if self._client_art_supported > 0 and (
+                self._client_art is None or not self._client_art.is_alive()
+            ):
 
                 if self._client_art_supported > 1:
                     self._client_art_supported = 0
@@ -833,10 +826,7 @@ class SamsungTVWS:
             return self.connection
 
         is_ssl = self._is_ssl_connection()
-        url = self._format_websocket_url(
-            _WS_ENDPOINT_REMOTE_CONTROL,
-            is_ssl=is_ssl
-        )
+        url = self._format_websocket_url(_WS_ENDPOINT_REMOTE_CONTROL, is_ssl=is_ssl)
         sslopt = {"cert_reqs": ssl.CERT_NONE} if is_ssl else {}
 
         _LOGGING.debug("WS url %s", url)

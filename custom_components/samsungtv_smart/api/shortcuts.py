@@ -27,49 +27,49 @@ class SamsungTVShortcuts:
 
     # power
     def power(self):
-        self.remote.send_key('KEY_POWER')
+        self.remote.send_key("KEY_POWER")
 
     # menu
     def home(self):
-        self.remote.send_key('KEY_HOME')
+        self.remote.send_key("KEY_HOME")
 
     def menu(self):
-        self.remote.send_key('KEY_MENU')
+        self.remote.send_key("KEY_MENU")
 
     def source(self):
-        self.remote.send_key('KEY_SOURCE')
+        self.remote.send_key("KEY_SOURCE")
 
     def guide(self):
-        self.remote.send_key('KEY_GUIDE')
+        self.remote.send_key("KEY_GUIDE")
 
     def tools(self):
-        self.remote.send_key('KEY_TOOLS')
+        self.remote.send_key("KEY_TOOLS")
 
     def info(self):
-        self.remote.send_key('KEY_INFO')
+        self.remote.send_key("KEY_INFO")
 
     # navigation
     def up(self):
-        self.remote.send_key('KEY_UP')
+        self.remote.send_key("KEY_UP")
 
     def down(self):
-        self.remote.send_key('KEY_DOWN')
+        self.remote.send_key("KEY_DOWN")
 
     def left(self):
-        self.remote.send_key('KEY_LEFT')
+        self.remote.send_key("KEY_LEFT")
 
     def right(self):
-        self.remote.send_key('KEY_RIGHT')
+        self.remote.send_key("KEY_RIGHT")
 
     def enter(self, count=1):
-        self.remote.send_key('KEY_ENTER')
+        self.remote.send_key("KEY_ENTER")
 
     def back(self):
-        self.remote.send_key('KEY_RETURN')
+        self.remote.send_key("KEY_RETURN")
 
     # channel
     def channel_list(self):
-        self.remote.send_key('KEY_CH_LIST')
+        self.remote.send_key("KEY_CH_LIST")
 
     def channel(self, ch):
         for c in str(ch):
@@ -78,33 +78,33 @@ class SamsungTVShortcuts:
         self.enter()
 
     def digit(self, d):
-        self.remote.send_key('KEY_' + d)
+        self.remote.send_key("KEY_" + d)
 
     def channel_up(self):
-        self.remote.send_key('KEY_CHUP')
+        self.remote.send_key("KEY_CHUP")
 
     def channel_down(self):
-        self.remote.send_key('KEY_CHDOWN')
+        self.remote.send_key("KEY_CHDOWN")
 
     # volume
     def volume_up(self):
-        self.remote.send_key('KEY_VOLUP')
+        self.remote.send_key("KEY_VOLUP")
 
     def volume_down(self):
-        self.remote.send_key('KEY_VOLDOWN')
+        self.remote.send_key("KEY_VOLDOWN")
 
     def mute(self):
-        self.remote.send_key('KEY_MUTE')
+        self.remote.send_key("KEY_MUTE")
 
     # extra
     def red(self):
-        self.remote.send_key('KEY_RED')
+        self.remote.send_key("KEY_RED")
 
     def green(self):
-        self.remote.send_key('KEY_GREEN')
+        self.remote.send_key("KEY_GREEN")
 
     def yellow(self):
-        self.remote.send_key('KEY_YELLOW')
+        self.remote.send_key("KEY_YELLOW")
 
     def blue(self):
-        self.remote.send_key('KEY_BLUE')
+        self.remote.send_key("KEY_BLUE")

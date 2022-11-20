@@ -22,7 +22,9 @@ class upnp:
             self._session = ClientSession()
             self._managed_session = True
 
-    async def _SOAPrequest(self, action, arguments, protocole, *, timeout=DEFAULT_TIMEOUT):
+    async def _SOAPrequest(
+        self, action, arguments, protocole, *, timeout=DEFAULT_TIMEOUT
+    ):
         headers = {
             "SOAPAction": f'"urn:schemas-upnp-org:service:{protocole}:1#{action}"',
             "content-type": "text/xml",
@@ -97,19 +99,22 @@ class upnp:
         return int(mute) != 0
 
     async def async_set_current_media(self, url):
-        """ Set media to playback and play it."""
+        """Set media to playback and play it."""
 
-        if await self._SOAPrequest(
-            "SetAVTransportURI",
-            f"<CurrentURI>{url}</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>",
-            "AVTransport",
-            timeout=2.0,
-        ) is None:
+        if (
+            await self._SOAPrequest(
+                "SetAVTransportURI",
+                f"<CurrentURI>{url}</CurrentURI><CurrentURIMetaData></CurrentURIMetaData>",
+                "AVTransport",
+                timeout=2.0,
+            )
+            is None
+        ):
             return False
 
         await self._SOAPrequest("Play", "<Speed>1</Speed>", "AVTransport")
         return True
 
     async def async_play(self):
-        """ Play media that was already set as current."""
+        """Play media that was already set as current."""
         await self._SOAPrequest("Play", "<Speed>1</Speed>", "AVTransport")

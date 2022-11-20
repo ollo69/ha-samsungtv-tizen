@@ -229,7 +229,8 @@ class SamsungTVConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             return self.async_abort(
                 reason="unsupported_version",
                 description_placeholders={
-                    "req_ver": __min_ha_version__, "run_ver": __version__
+                    "req_ver": __min_ha_version__,
+                    "run_ver": __version__,
                 },
             )
 
@@ -377,7 +378,8 @@ class SamsungTVConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     CONF_USE_HA_NAME, default=data.get(CONF_USE_HA_NAME, False)
                 ): bool,
                 vol.Optional(
-                    CONF_API_KEY, description={"suggested_value": data.get(CONF_API_KEY, "")}
+                    CONF_API_KEY,
+                    description={"suggested_value": data.get(CONF_API_KEY, "")},
                 ): str,
             }
         )
@@ -455,9 +457,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         opt_schema = {
             vol.Required(
                 CONF_LOGO_OPTION,
-                default=options.get(
-                    CONF_LOGO_OPTION, LOGO_OPTION_DEFAULT.value
-                ),
+                default=options.get(CONF_LOGO_OPTION, LOGO_OPTION_DEFAULT.value),
             ): vol.In(LOGO_OPTIONS),
             vol.Required(
                 CONF_USE_LOCAL_LOGO,
@@ -465,15 +465,11 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ): bool,
             vol.Optional(
                 CONF_SYNC_TURN_OFF,
-                description={
-                    "suggested_value": options.get(CONF_SYNC_TURN_OFF, [])
-                },
+                description={"suggested_value": options.get(CONF_SYNC_TURN_OFF, [])},
             ): cv.multi_select(switch_entities),
             vol.Optional(
                 CONF_SYNC_TURN_ON,
-                description={
-                    "suggested_value": options.get(CONF_SYNC_TURN_ON, [])
-                },
+                description={"suggested_value": options.get(CONF_SYNC_TURN_ON, [])},
             ): cv.multi_select(switch_entities),
             vol.Required(CONF_SHOW_ADV_OPT, default=False): bool,
         }
@@ -494,9 +490,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): bool,
                 vol.Required(
                     CONF_POWER_ON_METHOD,
-                    default=options.get(
-                        CONF_POWER_ON_METHOD, PowerOnMethod.WOL.value
-                    ),
+                    default=options.get(CONF_POWER_ON_METHOD, PowerOnMethod.WOL.value),
                 ): vol.In(POWER_ON_METHODS),
             }
 
@@ -505,9 +499,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         else:
             data_schema = opt_schema
 
-        return self.async_show_form(
-            step_id="init", data_schema=vol.Schema(data_schema)
-        )
+        return self.async_show_form(step_id="init", data_schema=vol.Schema(data_schema))
 
     async def async_step_adv_opt(self, user_input=None):
         """Handle advanced options flow."""
@@ -519,17 +511,13 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
     @callback
     def _async_adv_opt_form(self):
         """Return configuration form for advanced options."""
-        external_entities = _async_get_matching_entities(
-            self.hass, [BS_DOMAIN]
-        )
+        external_entities = _async_get_matching_entities(self.hass, [BS_DOMAIN])
         options = self._adv_options
 
         data_schema = {
             vol.Required(
                 CONF_APP_LOAD_METHOD,
-                default=options.get(
-                    CONF_APP_LOAD_METHOD, AppLoadMethod.All.value
-                ),
+                default=options.get(CONF_APP_LOAD_METHOD, AppLoadMethod.All.value),
             ): vol.In(APP_LOAD_METHODS),
             vol.Required(
                 CONF_DUMP_APPS,
@@ -554,9 +542,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
             ): vol.All(vol.Coerce(int), vol.Clamp(min=0, max=65535)),
             vol.Optional(
                 CONF_EXT_POWER_ENTITY,
-                description={
-                    "suggested_value": options.get(CONF_EXT_POWER_ENTITY, "")
-                }
+                description={"suggested_value": options.get(CONF_EXT_POWER_ENTITY, "")},
             ): vol.In(external_entities),
             vol.Required(
                 CONF_USE_MUTE_CHECK,
@@ -610,9 +596,5 @@ def _async_get_entry_entities(hass: HomeAssistant, entry_id: str):
     """Get the entities related to current entry"""
     return [
         entry.entity_id
-        for entry in (
-            er.async_entries_for_config_entry(
-                er.async_get(hass), entry_id
-            )
-        )
+        for entry in (er.async_entries_for_config_entry(er.async_get(hass), entry_id))
     ]

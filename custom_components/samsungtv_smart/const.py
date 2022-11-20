@@ -91,15 +91,39 @@ SERVICE_TURN_ON = "turn_on"
 STD_APP_LIST = {
     # app_id: smartthings app id (if different and available)
     "org.tizen.browser": {"st_app_id": "", "logo": "tizenbrowser.png"},  # Internet
-    "11101200001": {"st_app_id": "RN1MCdNq8t.Netflix", "logo": "netflix.png"},  # Netflix
-    "3201907018807": {"st_app_id": "org.tizen.netflix-app", "logo": "netflix.png"},  # Netflix (New)
-    "111299001912": {"st_app_id": "9Ur5IzDKqV.TizenYouTube", "logo": "youtube.png"},  # YouTube
-    "3201512006785": {"st_app_id": "org.tizen.ignition", "logo": "primevideo.png"},  # Prime Video
+    "11101200001": {
+        "st_app_id": "RN1MCdNq8t.Netflix",
+        "logo": "netflix.png",
+    },  # Netflix
+    "3201907018807": {
+        "st_app_id": "org.tizen.netflix-app",
+        "logo": "netflix.png",
+    },  # Netflix (New)
+    "111299001912": {
+        "st_app_id": "9Ur5IzDKqV.TizenYouTube",
+        "logo": "youtube.png",
+    },  # YouTube
+    "3201512006785": {
+        "st_app_id": "org.tizen.ignition",
+        "logo": "primevideo.png",
+    },  # Prime Video
     # "3201512006785": {"st_app_id": "evKhCgZelL.AmazonIgnitionLauncher2", "logo": ""},  # Prime Video
-    "3201901017640": {"st_app_id": "MCmYXNxgcu.DisneyPlus", "logo": "disneyplus.png"},  # Disney+
-    "3202110025305": {"st_app_id": "rJyOSqC6Up.PPlusIntl", "logo": "paramountplus.png"},  # Paramount+
-    "11091000000": {"st_app_id": "4ovn894vo9.Facebook", "logo": "facebook.png"},  # Facebook
+    "3201901017640": {
+        "st_app_id": "MCmYXNxgcu.DisneyPlus",
+        "logo": "disneyplus.png",
+    },  # Disney+
+    "3202110025305": {
+        "st_app_id": "rJyOSqC6Up.PPlusIntl",
+        "logo": "paramountplus.png",
+    },  # Paramount+
+    "11091000000": {
+        "st_app_id": "4ovn894vo9.Facebook",
+        "logo": "facebook.png",
+    },  # Facebook
     "3201806016390": {"st_app_id": "yu1NM3vHsU.DAZN", "logo": "dazn.png"},  # Dazn
     "3201601007250": {"st_app_id": "QizQxC7CUf.PlayMovies", "logo": ""},  # Google Play
-    "3201606009684": {"st_app_id": "rJeHak5zRg.Spotify", "logo": "spotify.png"},  # Spotify
+    "3201606009684": {
+        "st_app_id": "rJeHak5zRg.Spotify",
+        "logo": "spotify.png",
+    },  # Spotify
 }
