@@ -1,19 +1,16 @@
 """The samsungtv_smart integration."""
 from __future__ import annotations
 
-from aiohttp import ClientConnectionError, ClientSession, ClientResponseError
 import asyncio
-import async_timeout
 import logging
 import os
-from pathlib import Path
 import socket
+from pathlib import Path
+
+import async_timeout
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-from websocket import WebSocketException
-
-from .api.samsungws import ConnectionFailure, SamsungTVWS
-from .api.smartthings import SmartThingsTV
-
+from aiohttp import ClientConnectionError, ClientResponseError, ClientSession
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import (
     ATTR_DEVICE_ID,
@@ -32,11 +29,13 @@ from homeassistant.const import (
     Platform,
     __version__,
 )
-from homeassistant.core import callback, HomeAssistant
-import homeassistant.helpers.config_validation as cv
+from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.helpers.typing import ConfigType
+from websocket import WebSocketException
 
+from .api.samsungws import ConnectionFailure, SamsungTVWS
+from .api.smartthings import SmartThingsTV
 from .const import (
     ATTR_DEVICE_MAC,
     ATTR_DEVICE_MODEL,
@@ -46,19 +45,19 @@ from .const import (
     CONF_CHANNEL_LIST,
     CONF_DEVICE_NAME,
     CONF_LOAD_ALL_APPS,
-    CONF_SOURCE_LIST,
+    CONF_SCAN_APP_HTTP,
     CONF_SHOW_CHANNEL_NR,
+    CONF_SOURCE_LIST,
     CONF_SYNC_TURN_OFF,
     CONF_SYNC_TURN_ON,
-    CONF_WS_NAME,
-    CONF_UPDATE_METHOD,
     CONF_UPDATE_CUSTOM_PING_URL,
-    CONF_SCAN_APP_HTTP,
+    CONF_UPDATE_METHOD,
+    CONF_WS_NAME,
     DATA_CFG_YAML,
     DATA_OPTIONS,
     DEFAULT_PORT,
-    DEFAULT_TIMEOUT,
     DEFAULT_SOURCE_LIST,
+    DEFAULT_TIMEOUT,
     DOMAIN,
     LOCAL_LOGO_PATH,
     MIN_HA_MAJ_VER,

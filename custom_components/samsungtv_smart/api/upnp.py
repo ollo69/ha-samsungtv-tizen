@@ -1,9 +1,10 @@
 # Smartthings TV integration#
-from aiohttp import ClientSession
-import async_timeout
 import logging
-from typing import Optional
 import xml.etree.ElementTree as ET
+from typing import Optional
+
+import async_timeout
+from aiohttp import ClientSession
 
 DEFAULT_TIMEOUT = 0.2
 

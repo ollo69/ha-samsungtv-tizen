@@ -5,10 +5,10 @@ from homeassistant.components.diagnostics import REDACTED, async_redact_data
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, CONF_ID, CONF_MAC, CONF_TOKEN
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import device_registry as dr, entity_registry as er
+from homeassistant.helpers import device_registry as dr
+from homeassistant.helpers import entity_registry as er
 
 from .const import DOMAIN
-
 
 TO_REDACT = {CONF_API_KEY, CONF_MAC, CONF_TOKEN}
 

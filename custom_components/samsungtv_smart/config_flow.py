@@ -1,16 +1,13 @@
 """Config flow for Samsung TV."""
 from __future__ import annotations
 
+import logging
 import socket
 from typing import Any, Dict
-import logging
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.components.binary_sensor import DOMAIN as BS_DOMAIN
-from homeassistant.core import callback, HomeAssistant
-
 from homeassistant.const import (
     ATTR_DEVICE_ID,
     ATTR_FRIENDLY_NAME,
@@ -25,7 +22,9 @@ from homeassistant.const import (
     CONF_TOKEN,
     __version__,
 )
-from homeassistant.helpers import config_validation as cv, entity_registry as er
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import config_validation as cv
+from homeassistant.helpers import entity_registry as er
 
 from . import SamsungTVInfo, get_device_info, is_valid_ha_version
 from .const import (
@@ -33,11 +32,10 @@ from .const import (
     ATTR_DEVICE_MODEL,
     ATTR_DEVICE_NAME,
     ATTR_DEVICE_OS,
-    DOMAIN,
     CONF_APP_LAUNCH_METHOD,
     CONF_APP_LOAD_METHOD,
-    CONF_DEVICE_NAME,
     CONF_DEVICE_MODEL,
+    CONF_DEVICE_NAME,
     CONF_DEVICE_OS,
     CONF_DUMP_APPS,
     CONF_EXT_POWER_ENTITY,
@@ -56,6 +54,7 @@ from .const import (
     CONF_WOL_REPEAT,
     CONF_WS_NAME,
     DEFAULT_POWER_ON_DELAY,
+    DOMAIN,
     MAX_WOL_REPEAT,
     RESULT_ST_DEVICE_NOT_FOUND,
     RESULT_ST_DEVICE_USED,

@@ -1,13 +1,13 @@
 """ Smartthings TV integration """
 
+import json
+import logging
+from asyncio import TimeoutError as AsyncTimeoutError
 from datetime import timedelta
 from enum import Enum
-import logging
 from typing import Dict, List, Optional
-from aiohttp import ClientSession, ClientConnectionError, ClientResponseError
-from asyncio import TimeoutError as AsyncTimeoutError
-import json
 
+from aiohttp import ClientConnectionError, ClientResponseError, ClientSession
 from homeassistant.util import Throttle
 
 API_BASEURL = "https://api.smartthings.com/v1"
