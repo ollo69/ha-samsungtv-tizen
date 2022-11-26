@@ -1,0 +1,9 @@
+# Strictly for tests
+pytest==7.1.3
+#pytest-cov==2.9.0
+#pytest-homeassistant
+pytest-homeassistant-custom-component==0.12.21
+# From our manifest.json for our custom component
+websocket-client!=1.4.0,>=0.58.0
+wakeonlan~=2.0.1
+aiofiles~=0.8.0
