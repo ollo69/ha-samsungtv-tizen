@@ -135,6 +135,7 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def tv_url(host: str, address: str = "") -> str:
+    """Return url to the TV."""
     return f"http://{host}:8001/api/v2/{address}"
 
 
@@ -166,6 +167,7 @@ def _notify_error(hass, notification_id, title, message):
 
 
 def token_file_name(hostname: str) -> str:
+    """Return token file name."""
     return f"{DOMAIN}_{hostname}_token"
 
 
@@ -177,7 +179,7 @@ def _remove_token_file(hass, hostname, token_file=None):
     if os.path.isfile(token_file):
         try:
             os.remove(token_file)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.error(
                 "Samsung TV - Error deleting token file %s: %s", token_file, str(exc)
             )
@@ -196,7 +198,7 @@ def _migrate_token(hass: HomeAssistant, entry: ConfigEntry, hostname: str) -> No
     try:
         with open(token_file, "r") as os_token_file:
             token = os_token_file.readline()
-    except Exception as exc:
+    except Exception as exc:  # pylint: disable=broad-except
         _LOGGER.error("Error reading token file %s: %s", token_file, str(exc))
         return
 
@@ -245,7 +247,8 @@ def _migrate_entry_unique_id(hass: HomeAssistant, entry: ConfigEntry) -> None:
     for other_entry in entries_list:
         if other_entry.unique_id == new_unique_id:
             _LOGGER.warning(
-                "Found duplicated entries %s and %s that refer to the same device. Please remove unused entry",
+                "Found duplicated entries %s and %s that refer to the same device."
+                " Please remove unused entry",
                 entry.data[CONF_HOST],
                 other_entry.data[CONF_HOST],
             )
@@ -267,7 +270,7 @@ def _register_logo_paths(hass: HomeAssistant) -> str | None:
     if not local_logo_path.exists():
         try:
             local_logo_path.mkdir(parents=True)
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.warning(
                 "Error registering custom logo folder %s: %s", str(local_logo_path), exc
             )
@@ -286,12 +289,12 @@ async def get_device_info(hostname: str, session: ClientSession) -> dict:
             ) as resp:
                 info = await resp.json()
     except (asyncio.TimeoutError, ClientConnectionError):
-        _LOGGER.warning("Error getting HTTP device info for TV: " + hostname)
+        _LOGGER.warning("Error getting HTTP device info for TV: %s", hostname)
         return {}
 
     device = info.get("device")
     if not device:
-        _LOGGER.warning("Error getting HTTP device info for TV: " + hostname)
+        _LOGGER.warning("Error getting HTTP device info for TV: %s", hostname)
         return {}
 
     result = {
@@ -307,7 +310,10 @@ async def get_device_info(hostname: str, session: ClientSession) -> dict:
 
 
 class SamsungTVInfo:
+    """Class to connect and collect TV information."""
+
     def __init__(self, hass, hostname, ws_name):
+        """Initialize the object."""
         self._hass = hass
         self._hostname = hostname
         self._ws_name = ws_name
@@ -317,14 +323,17 @@ class SamsungTVInfo:
 
     @property
     def ws_port(self):
+        """Return used WebSocket port."""
         return self._ws_port
 
     @property
     def ws_token(self):
+        """Return WebSocket token."""
         return self._ws_token
 
     @property
     def ping_port(self):
+        """Return the port used to ping the TV."""
         return self._ping_port
 
     def _try_connect_ws(self):
@@ -387,7 +396,7 @@ class SamsungTVInfo:
             _LOGGER.error("Failed connecting to SmartThings TV, error: %s", err)
             if err.status == 400:  # Bad request, means that token is valid
                 return RESULT_ST_DEVICE_NOT_FOUND
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             _LOGGER.error("Failed connecting with SmartThings, error: %s", err)
 
         return RESULT_WRONG_APIKEY
@@ -401,7 +410,7 @@ class SamsungTVInfo:
                 devices = await SmartThingsTV.get_devices_list(
                     api_key, session, st_device_label
                 )
-        except Exception as err:
+        except Exception as err:  # pylint: disable=broad-except
             _LOGGER.error("Failed connecting with SmartThings, error: %s", err)
             return None
 

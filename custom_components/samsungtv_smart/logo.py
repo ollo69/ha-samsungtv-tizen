@@ -1,3 +1,4 @@
+"""Logo implementation for SamsungTV Smart."""
 import asyncio
 from datetime import datetime, timedelta
 from enum import Enum
@@ -18,6 +19,8 @@ from .const import DOMAIN
 
 # Logo feature constants
 class LogoOption(Enum):
+    """List of posible logo options."""
+
     Disabled = 1
     WhiteColor = 2
     BlueColor = 3
@@ -102,7 +105,10 @@ class LocalImageUrl:
 
 
 class Logo:
-    """Class that fetches logos for Samsung TV Tizen. Works with https://github.com/jaruba/channel-logos."""
+    """
+    Class that fetches logos for Samsung TV Tizen.
+    Works with https://github.com/jaruba/channel-logos.
+    """
 
     def __init__(
         self,
@@ -250,7 +256,7 @@ class Logo:
         try:
             async with aiofiles.open(logo_file, "r") as f:
                 image_paths = json.loads(await f.read())
-        except Exception as exc:
+        except Exception as exc:  # pylint: disable=broad-except
             _LOGGER.warning("Failed to read logo paths file %s: %s", logo_file, exc)
             return
 
