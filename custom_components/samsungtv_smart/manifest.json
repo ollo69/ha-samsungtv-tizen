@@ -16,5 +16,6 @@
   ],
   "config_flow": true,
   "iot_class": "cloud_polling",
-  "version": "0.8.1"
+  "integration_type": "device",
+  "version": "0.9.0b1"
 }
