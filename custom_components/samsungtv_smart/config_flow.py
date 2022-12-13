@@ -23,7 +23,7 @@ from homeassistant.const import (
     __version__,
 )
 from homeassistant.core import HomeAssistant, callback
-from homeassistant.helpers import entity_registry as er
+from homeassistant.helpers import config_validation as cv, entity_registry as er
 from homeassistant.helpers.selector import (
     EntitySelector,
     EntitySelectorConfig,
@@ -50,6 +50,7 @@ from .const import (
     CONF_PING_PORT,
     CONF_POWER_ON_DELAY,
     CONF_POWER_ON_METHOD,
+    CONF_POWER_ON_SERVICE_DATA,
     CONF_SHOW_CHANNEL_NR,
     CONF_SYNC_TURN_OFF,
     CONF_SYNC_TURN_ON,
@@ -100,6 +101,7 @@ LOGO_OPTIONS = {
 POWER_ON_METHODS = {
     PowerOnMethod.WOL.value: "WOL Packet (better for wired connection)",
     PowerOnMethod.SmartThings.value: "SmartThings (better for wireless connection)",
+    PowerOnMethod.Service.value: "Service",
 }
 
 CONF_SHOW_ADV_OPT = "show_adv_opt"
@@ -484,6 +486,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 CONF_SYNC_TURN_ON,
                 description={"suggested_value": options.get(CONF_SYNC_TURN_ON, [])},
             ): EntitySelector(select_entities),
+            vol.Required(
+                CONF_POWER_ON_METHOD,
+                default=options.get(
+                    CONF_POWER_ON_METHOD, str(PowerOnMethod.WOL.value)
+                ),
+            ): SelectSelector(_dict_to_select(POWER_ON_METHODS)),
+            vol.Required(
+                CONF_POWER_ON_SERVICE_DATA,
+                default=options.get(
+                    CONF_POWER_ON_SERVICE_DATA, "{}"
+                ),
+            ): cv.string,
             vol.Required(CONF_SHOW_ADV_OPT, default=False): bool,
         }
 
@@ -501,12 +515,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_SHOW_CHANNEL_NR,
                     default=options.get(CONF_SHOW_CHANNEL_NR, False),
                 ): bool,
-                vol.Required(
-                    CONF_POWER_ON_METHOD,
-                    default=options.get(
-                        CONF_POWER_ON_METHOD, str(PowerOnMethod.WOL.value)
-                    ),
-                ): SelectSelector(_dict_to_select(POWER_ON_METHODS)),
             }
 
             data_schema.update(opt_schema)
