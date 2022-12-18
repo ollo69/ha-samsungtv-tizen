@@ -282,21 +282,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         # Save a reference to the imported config
         self._broadcast = config.get(CONF_BROADCAST_ADDRESS)
 
-        # load TV lists
-        self._default_source_used = False
-        self._source_list = None
-        self._dump_apps = True
-        self._app_list = None
-        self._app_list_st = None
-        self._channel_list = None
-        self._load_tv_lists(True)
-
-        # generic for sources and apps
-        self._source = None
-        self._running_app = None
-        self._yt_app_id = None
-
-        # Assume that the TV is in Play mode
+        # Assume that the TV is in Play mode and state is off
         self._playing = True
         self._state = MediaPlayerState.OFF
 
@@ -312,6 +298,29 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._fake_on = None
         self._delayed_set_source = None
         self._delayed_set_source_time = None
+
+        # generic for sources and apps
+        self._source = None
+        self._running_app = None
+        self._yt_app_id = None
+
+        # prepare TV lists options
+        self._default_source_used = False
+        self._source_list = None
+        self._dump_apps = True
+        self._app_list = None
+        self._app_list_st = None
+        self._channel_list = None
+
+        # config options reloaded on change
+        self._ping_port: int = 0
+        self._use_st_status: bool = True
+        self._use_channel_info: bool = True
+        self._use_mute_check: bool = True
+        self._show_channel_number: bool = False
+
+        # update config options for first time
+        self._update_config_options(True)
 
         # ws initialization
         ws_name = config.get(CONF_WS_NAME, self._attr_name)
@@ -364,6 +373,7 @@ class SamsungTVDevice(MediaPlayerEntity):
     async def async_added_to_hass(self):
         """Set config parameter when add to hass."""
         await super().async_added_to_hass()
+        # this will update config options when changed
         self.async_on_remove(
             async_dispatcher_connect(
                 self.hass, SIGNAL_CONFIG_ENTITY, self._update_config_options
@@ -432,9 +442,14 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._channel_list = self._get_option(CONF_CHANNEL_LIST, {})
 
     @callback
-    def _update_config_options(self):
+    def _update_config_options(self, first_load=False):
         """Update config options."""
-        self._load_tv_lists()
+        self._load_tv_lists(first_load)
+        self._ping_port = self._get_option(CONF_PING_PORT, 0)
+        self._use_st_status = self._get_option(CONF_USE_ST_STATUS_INFO, True)
+        self._use_channel_info = self._get_option(CONF_USE_ST_CHANNEL_INFO, True)
+        self._use_mute_check = self._get_option(CONF_USE_MUTE_CHECK, True)
+        self._show_channel_number = self._get_option(CONF_SHOW_CHANNEL_NR, False)
 
     def _get_option(self, param, default=None):
         """Get option from entity configuration."""
@@ -545,15 +560,13 @@ class SamsungTVDevice(MediaPlayerEntity):
     def _ping_device(self):
         """Ping TV with WS and others method to check power status."""
 
-        ping_port = self._get_option(CONF_PING_PORT, 0)
-        result = self._ws.ping_device(ping_port)
+        result = self._ws.ping_device(self._ping_port)
         if result and self._st:
-            use_st_status = self._get_option(CONF_USE_ST_STATUS_INFO, True)
             if (
                 self._st.state == STStatus.STATE_OFF
                 and self._st.prev_state != STStatus.STATE_OFF
                 and self._state == MediaPlayerState.ON
-                and use_st_status
+                and self._use_st_status
             ):
                 result = False
 
@@ -800,10 +813,9 @@ class SamsungTVDevice(MediaPlayerEntity):
         # Required to get source and media title
         st_error = False
         if self._st:
-            use_channel_info = self._get_option(CONF_USE_ST_CHANNEL_INFO, True)
             try:
                 async with async_timeout.timeout(ST_UPDATE_TIMEOUT):
-                    await self._st.async_device_update(use_channel_info)
+                    await self._st.async_device_update(self._use_channel_info)
             except (
                 asyncio.TimeoutError,
                 ClientConnectionError,
@@ -818,7 +830,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             use_mute_check = False
             self._fake_on = None
         else:
-            use_mute_check = self._get_option(CONF_USE_MUTE_CHECK, True)
+            use_mute_check = self._use_mute_check
 
         if use_mute_check and self._state == MediaPlayerState.OFF:
             first_detect = self._fake_on is None
@@ -1007,10 +1019,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             if self._st and self._st.state != STStatus.STATE_OFF:
                 if self._st.source in ["digitalTv", "TV"]:
                     if self._st.channel_name != "":
-                        show_channel_number = self._get_option(
-                            CONF_SHOW_CHANNEL_NR, False
-                        )
-                        if show_channel_number and self._st.channel != "":
+                        if self._show_channel_number and self._st.channel != "":
                             return self._st.channel_name + " (" + self._st.channel + ")"
                         return self._st.channel_name
                     if self._st.channel != "":
