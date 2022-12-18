@@ -50,18 +50,16 @@
                     "use_st_status_info": "Use as informações de status da TV SmartThings",
                     "use_st_channel_info": "Use as informações dos canais de TV SmartThings",
                     "show_channel_number": "Use as informações de número dos canais de TV SmartThings",
-                    "power_on_method": "Método usado para ligar a TV",
+                    "app_load_method": "Modo de carregamento da lista de aplicativos na inicialização",
                     "logo_option": "Exiba uma logo para fontes, aplicativos e canais conhecidos",
                     "use_local_logo": "Permitir o uso de imagens de logotipos locais",
-                    "sync_turn_off": "Lista de entidades para desligar com a TV",
-                    "sync_turn_on": "Lista de entidades para ligar com a TV",
+                    "power_on_method": "Método usado para ligar a TV",
                     "show_adv_opt": "Mostrar opções avançadas"
                 }
             },
             "adv_opt": {
                 "title": "Opções avançadas SamsungTV Smart",
                 "data": {
-                    "app_load_method": "Modo de carregamento da lista de aplicativos na inicialização",
                     "app_launch_method": "Método usado na inicialização de aplicativos",
                     "dump_apps": "Despejar a lista de aplicativos no arquivo de log na inicialização (quando possível)",
                     "use_mute_check": "Use o status de volume mudo para detectar um falso status de LIGADO",
@@ -69,6 +67,13 @@
                     "power_on_delay": "Segundos de delay para o status LIGADO",
                     "ping_port": "Porta TCP usada para verificar o status ligado/desligado (0 para ICMP)",
                     "ext_power_entity": "Binary sensor para ajudar a detectar o status de energia"
+                }
+            },
+            "sync_ent": {
+                "title": "SamsungTV Smart synched entities",
+                "data": {
+                    "sync_turn_off": "Lista de entidades para desligar com a TV",
+                    "sync_turn_on": "Lista de entidades para ligar com a TV"
                 }
             }
         }

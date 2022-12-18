@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import os
 from pathlib import Path
@@ -32,6 +33,7 @@ from homeassistant.const import (
 )
 from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.config_validation as cv
+from homeassistant.helpers.dispatcher import async_dispatcher_send
 from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.helpers.typing import ConfigType
 
@@ -67,6 +69,7 @@ from .const import (
     RESULT_ST_DEVICE_NOT_FOUND,
     RESULT_SUCCESS,
     RESULT_WRONG_APIKEY,
+    SIGNAL_CONFIG_ENTITY,
     WS_PREFIX,
     __min_ha_version__,
 )
@@ -151,7 +154,9 @@ def is_valid_ha_version() -> bool:
     return is_min_ha_version(MIN_HA_MAJ_VER, MIN_HA_MIN_VER)
 
 
-def _notify_error(hass, notification_id, title, message):
+def _notify_message(
+    hass: HomeAssistant, notification_id: str, title: str, message: str
+) -> None:
     """Notify user with persistent notification"""
     hass.async_create_task(
         hass.services.async_call(
@@ -164,6 +169,22 @@ def _notify_error(hass, notification_id, title, message):
             },
         )
     )
+
+
+def _load_option_list(src_list):
+    """Load list parameters in JSON from configuration.yaml."""
+
+    if src_list is None:
+        return None
+    if isinstance(src_list, dict):
+        return src_list
+
+    result = {}
+    try:
+        result = json.loads(src_list)
+    except TypeError:
+        _LOGGER.error("Invalid format parameter: %s", str(src_list))
+    return result
 
 
 def token_file_name(hostname: str) -> str:
@@ -225,6 +246,22 @@ def _migrate_options_format(hass: HomeAssistant, entry: ConfigEntry) -> None:
                 opt_migrated = True
                 continue
         new_options[key] = option
+
+    # load the option lists in entry option
+    yaml_opt = hass.data.get(DOMAIN, {}).get(entry.entry_id, {}).get(DATA_CFG_YAML, {})
+    for key in [CONF_APP_LIST, CONF_CHANNEL_LIST, CONF_SOURCE_LIST]:
+        if key not in new_options:  # import will occurs only on first restart
+            if option := _load_option_list(yaml_opt.get(key, {})):
+                message = (
+                    f"Configuration key '{key}' has been in imported in integration options,"
+                    " you can now remove from configuration.yaml"
+                )
+                _notify_message(
+                    hass, f"config-import-{key}", "SamsungTV Smart", message
+                )
+                _LOGGER.warning(message)
+            new_options[key] = option
+            opt_migrated = True
 
     if opt_migrated:
         hass.config_entries.async_update_entry(entry, options=new_options)
@@ -355,10 +392,10 @@ class SamsungTVInfo:
                     str(port),
                 )
                 with SamsungTVWS(
-                    name=f"{WS_PREFIX} {self._ws_name}",  # this is the name shown in the TV list of external device.
+                    name=f"{WS_PREFIX} {self._ws_name}",  # this is the name shown in the TV
                     host=self._hostname,
                     port=port,
-                    timeout=45,  # We need this high timeout because waiting for auth popup is just an open socket
+                    timeout=45,  # We need this high timeout because waiting for TV auth popup
                 ) as remote:
                     remote.open()
                     self._ws_token = remote.token
@@ -384,14 +421,13 @@ class SamsungTVInfo:
                     api_key=api_key,
                     device_id=device_id,
                     session=session,
-                ) as st:
-                    result = await st.async_device_health()
+                ) as st_tv:
+                    result = await st_tv.async_device_health()
                 if result:
                     _LOGGER.info("Connection completed successfully.")
                     return RESULT_SUCCESS
-                else:
-                    _LOGGER.error("Connection to SmartThings TV not available.")
-                    return RESULT_ST_DEVICE_NOT_FOUND
+                _LOGGER.error("Connection to SmartThings TV not available.")
+                return RESULT_ST_DEVICE_NOT_FOUND
         except ClientResponseError as err:
             _LOGGER.error("Failed connecting to SmartThings TV, error: %s", err)
             if err.status == 400:  # Bad request, means that token is valid
@@ -439,7 +475,7 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             f" {__min_ha_version__}, you are running version {__version__}."
             " Please upgrade HomeAssistant to continue use this integration."
         )
-        _notify_error(hass, "inv_ha_version", "SamsungTV Smart", msg)
+        _notify_message(hass, "inv_ha_version", "SamsungTV Smart", msg)
         _LOGGER.warning(msg)
         return True
 
@@ -458,7 +494,8 @@ async def async_setup(hass: HomeAssistant, config: ConfigType) -> bool:
             ]
             if not valid_entries:
                 _LOGGER.warning(
-                    "Found yaml configuration for not configured device %s. Please use UI to configure",
+                    "Found yaml configuration for not configured device %s."
+                    " Please use UI to configure",
                     ip_address,
                 )
                 continue
@@ -531,3 +568,4 @@ async def async_remove_entry(hass: HomeAssistant, entry: ConfigEntry) -> None:
 async def _update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update when config_entry options update."""
     hass.data[DOMAIN][entry.entry_id][DATA_OPTIONS] = entry.options.copy()
+    async_dispatcher_send(hass, SIGNAL_CONFIG_ENTITY)

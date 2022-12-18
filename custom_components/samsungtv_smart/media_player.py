@@ -1,7 +1,6 @@
 """Support for interface with an Samsung TV."""
 import asyncio
 from datetime import datetime, timedelta
-import json
 import logging
 from socket import error as socketError
 from time import sleep
@@ -45,6 +44,7 @@ from homeassistant.core import DOMAIN as HA_DOMAIN, HomeAssistant, callback
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers import config_validation as cv, entity_platform
 from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.dispatcher import async_dispatcher_connect
 from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.service import CONF_SERVICE_ENTITY_ID, async_call_from_config
@@ -94,6 +94,7 @@ from .const import (
     SERVICE_SET_ART_MODE,
     SERVICE_TURN_OFF,
     SERVICE_TURN_ON,
+    SIGNAL_CONFIG_ENTITY,
     STD_APP_LIST,
     WS_PREFIX,
     AppLaunchMethod,
@@ -281,36 +282,24 @@ class SamsungTVDevice(MediaPlayerEntity):
         # Save a reference to the imported config
         self._broadcast = config.get(CONF_BROADCAST_ADDRESS)
 
-        # load sources list
+        # load TV lists
         self._default_source_used = False
-        source_list = SamsungTVDevice._load_param_list(config.get(CONF_SOURCE_LIST, {}))
-        if not source_list:
-            source_list = DEFAULT_SOURCE_LIST
-            self._default_source_used = True
-        self._source_list = source_list
-
-        # load apps list
+        self._source_list = None
         self._dump_apps = True
-        app_list = SamsungTVDevice._load_param_list(config.get(CONF_APP_LIST))
-        if app_list is not None:
-            double_list = SamsungTVDevice._split_app_list(app_list, "/")
-            self._app_list = double_list["app"]
-            self._app_list_ST = double_list["appST"]
-        else:
-            self._app_list = None
-            self._app_list_ST = None
+        self._app_list = None
+        self._app_list_st = None
+        self._channel_list = None
+        self._load_tv_lists(True)
 
-        # load channels list
-        self._channel_list = SamsungTVDevice._load_param_list(
-            config.get(CONF_CHANNEL_LIST)
-        )
-
+        # generic for sources and apps
         self._source = None
         self._running_app = None
         self._yt_app_id = None
+
         # Assume that the TV is in Play mode
         self._playing = True
         self._state = MediaPlayerState.OFF
+
         # Mark the end of a shutdown command (need to wait 15 seconds before
         # sending the next command to avoid turning the TV back ON).
         self._started_up = False
@@ -324,12 +313,13 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._delayed_set_source = None
         self._delayed_set_source_time = None
 
+        # ws initialization
         ws_name = config.get(CONF_WS_NAME, self._attr_name)
         ws_port = config.get(CONF_PORT, DEFAULT_PORT)
         ws_timeout = config.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
         ws_token = config.get(CONF_TOKEN)
         self._ws = SamsungTVWS(
-            name=f"{WS_PREFIX} {ws_name}",  # this is the name shown in the TV list of external device.
+            name=f"{WS_PREFIX} {ws_name}",  # this is the name shown in the TV external device.
             host=self._host,
             port=ws_port,
             timeout=ws_timeout,
@@ -344,8 +334,10 @@ class SamsungTVDevice(MediaPlayerEntity):
 
         self._ws.register_new_token_callback(new_token_callback)
 
+        # upnp initialization
         self._upnp = upnp(host=self._host, session=session)
 
+        # smartthings initialization
         self._st = None
         api_key = config.get(CONF_API_KEY)
         device_id = config.get(CONF_DEVICE_ID)
@@ -360,6 +352,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._st_error_count = 0
         self._setvolumebyst = False
 
+        # logo control initializzation
         self._local_image_url = LocalImageUrl(local_logo_path)
         self._logo_option = LOGO_OPTION_DEFAULT
         self._logo = Logo(
@@ -367,6 +360,19 @@ class SamsungTVDevice(MediaPlayerEntity):
             logo_file_download=logo_file,
             session=session,
         )
+
+    async def async_added_to_hass(self):
+        """Set config parameter when add to hass."""
+        await super().async_added_to_hass()
+        self.async_on_remove(
+            async_dispatcher_connect(
+                self.hass, SIGNAL_CONFIG_ENTITY, self._update_config_options
+            )
+        )
+
+    async def async_will_remove_from_hass(self):
+        """Run when entity will be removed from hass."""
+        await self.hass.async_add_executor_job(self._ws.stop_client)
 
     @staticmethod
     def _get_add_dev_info(dev_model, dev_name, dev_os, dev_mac):
@@ -384,22 +390,6 @@ class SamsungTVDevice(MediaPlayerEntity):
         return dict(dev_info)
 
     @staticmethod
-    def _load_param_list(src_list):
-        """Load parameters in JSON from configuration.yaml"""
-
-        if src_list is None:
-            return None
-        if isinstance(src_list, dict):
-            return src_list
-
-        result = {}
-        try:
-            result = json.loads(src_list)
-        except TypeError:
-            _LOGGER.error("Invalid format parameter: %s", str(src_list))
-        return result
-
-    @staticmethod
     def _split_app_list(app_list, sep=ST_APP_SEPARATOR):
         """Split the application list for standard and SmartThings."""
         retval = {"app": {}, "appST": {}}
@@ -415,6 +405,36 @@ class SamsungTVDevice(MediaPlayerEntity):
             retval["appST"][app_name] = st_app_id or app_id
 
         return retval
+
+    def _load_tv_lists(self, first_load=False):
+        """Load TV sources, apps and channels."""
+
+        # load sources list
+        default_source_used = False
+        source_list = self._get_option(CONF_SOURCE_LIST, {})
+        if not source_list:
+            source_list = DEFAULT_SOURCE_LIST
+            default_source_used = True
+        self._source_list = source_list
+        self._default_source_used = default_source_used
+
+        # load apps list
+        app_list = self._get_option(CONF_APP_LIST, {})
+        if app_list:
+            double_list = self._split_app_list(app_list, "/")
+            self._app_list = double_list["app"]
+            self._app_list_st = double_list["appST"]
+        else:
+            self._app_list = None if first_load else {}
+            self._app_list_st = None if first_load else {}
+
+        # load channels list
+        self._channel_list = self._get_option(CONF_CHANNEL_LIST, {})
+
+    @callback
+    def _update_config_options(self):
+        """Update config options."""
+        self._load_tv_lists()
 
     def _get_option(self, param, default=None):
         """Get option from entity configuration."""
@@ -565,7 +585,7 @@ class SamsungTVDevice(MediaPlayerEntity):
                         self._running_app = app
                         return
                 if self._st and self._st.channel_name != "":
-                    st_app_id = self._app_list_ST.get(app, "")
+                    st_app_id = self._app_list_st.get(app, "")
                     if st_app_id == self._st.channel_name:
                         self._running_app = app
                         return
@@ -595,10 +615,11 @@ class SamsungTVDevice(MediaPlayerEntity):
                     return next_input
                 return ""
 
-            for i in range(len(source_list)):
+            for i, _ in enumerate(source_list):
                 try:
-                    # SmartThings source list is an array that may contain the input or the assigned name,
-                    # if we found a name that is not an input we use it as input name
+                    # SmartThings source list is an array that may contain the input
+                    # or the assigned name, if we found a name that is not an input
+                    # we use it as input name
                     input_name = source_list[i]
                     is_tv = input_name.upper() in ["DIGITALTV", "TV"]
                     is_hdmi = input_name.startswith("HDMI")
@@ -612,13 +633,13 @@ class SamsungTVDevice(MediaPlayerEntity):
                             name = get_next_name(i + 1)
                         st_source_list[name or input_name] = input_type
 
-                except Exception:
+                except Exception:  # pylint: disable=broad-except
                     pass
 
         if len(st_source_list) > 0:
             _LOGGER.info(
-                "Samsung TV: loaded sources list from SmartThings: "
-                + str(st_source_list)
+                "Samsung TV: loaded sources list from SmartThings: %s",
+                str(st_source_list),
             )
             self._source_list = st_source_list
             self._default_source_used = False
@@ -638,7 +659,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             return
 
         app_load_method = AppLoadMethod(
-            self._get_option(CONF_APP_LOAD_METHOD, AppLoadMethod.All.value)
+            self._get_option(CONF_APP_LOAD_METHOD, AppLoadMethod.Default.value)
         )
 
         # app_list is a list of dict
@@ -650,9 +671,10 @@ class SamsungTVDevice(MediaPlayerEntity):
                 app_name = app.app_name
                 app_id = app.app_id
                 def_app_id, st_app_id, _ = _get_default_app_info(app_id)
-                # app_list is automatically created only with apps in hard coded short list (STD_APP_LIST)
-                # other available apps are dumped in a file that can be used to create a custom list
-                # this is to avoid unuseful long list that can impact performance
+                # app_list is automatically created only with apps in hard coded short
+                # list (STD_APP_LIST). Other available apps are dumped in a file that
+                # can be used to create a custom list.
+                # This is to avoid unuseful long list that can impact performance
                 if app_load_method != AppLoadMethod.NotLoad:
                     if def_app_id or app_load_method == AppLoadMethod.All:
                         filtered_app_list[app_name] = app_id
@@ -662,12 +684,12 @@ class SamsungTVDevice(MediaPlayerEntity):
                     app_id + ST_APP_SEPARATOR + st_app_id if st_app_id else app_id
                 )
 
-            except Exception:
+            except Exception:  # pylint: disable=broad-except
                 pass
 
         if self._app_list is None:
             self._app_list = filtered_app_list
-            self._app_list_ST = filtered_app_list_st
+            self._app_list_st = filtered_app_list_st
 
         if self._dump_apps:
             _LOGGER.info(
@@ -775,7 +797,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         if self._update_forced():
             return
 
-        """Required to get source and media title"""
+        # Required to get source and media title
         st_error = False
         if self._st:
             use_channel_info = self._get_option(CONF_USE_ST_CHANNEL_INFO, True)
@@ -835,7 +857,7 @@ class SamsungTVDevice(MediaPlayerEntity):
                 if difference > DELAYED_SOURCE_TIMEOUT:
                     self._delayed_set_source = None
                 else:
-                    await self.async_select_source(self._delayed_set_source, False)
+                    await self._async_select_source_delayed(self._delayed_set_source)
             await self._update_volume_info()
             self._get_running_app()
             await self._update_media()
@@ -995,7 +1017,7 @@ class SamsungTVDevice(MediaPlayerEntity):
                         return self._st.channel
                     return None
 
-                elif self._st.channel_name != "":
+                if self._st.channel_name != "":
                     # the channel name holds the running app ID
                     # regardless of the self._cloud_source value
                     return self._st.channel_name
@@ -1030,6 +1052,23 @@ class SamsungTVDevice(MediaPlayerEntity):
         return features
 
     @property
+    def extra_state_attributes(self):
+        """Return the optional state attributes."""
+        data = {ATTR_IP_ADDRESS: self._host}
+        if self._ws.artmode_status != ArtModeStatus.Unsupported:
+            status_on = self._ws.artmode_status == ArtModeStatus.On
+            data.update({ATTR_ART_MODE_STATUS: STATE_ON if status_on else STATE_OFF})
+        if self._st:
+            picture_mode = self._st.picture_mode
+            picture_mode_list = self._st.picture_mode_list
+            if picture_mode:
+                data[ATTR_PICTURE_MODE] = picture_mode
+            if picture_mode_list:
+                data[ATTR_PICTURE_MODE_LIST] = picture_mode_list
+
+        return data
+
+    @property
     def media_channel(self):
         """Channel currently playing."""
         if self._state == MediaPlayerState.ON:
@@ -1055,8 +1094,8 @@ class SamsungTVDevice(MediaPlayerEntity):
         if self._state != MediaPlayerState.ON:
             return None
 
-        if self._app_list_ST and self._running_app != DEFAULT_APP:
-            if app := self._app_list_ST.get(self._running_app):
+        if self._app_list_st and self._running_app != DEFAULT_APP:
+            if app := self._app_list_st.get(self._running_app):
                 return app
 
         if self._st:
@@ -1069,8 +1108,9 @@ class SamsungTVDevice(MediaPlayerEntity):
         """Return the state of the device."""
 
         # Warning: we assume that after a sending a power off command, the command is successful
-        # so for 20 seconds (defined in POWER_OFF_DELAY) the state will be off regardless of the actual state.
-        # This is to have better feedback to the command in the UI, but the logic might cause other issues in the future
+        # so for 20 seconds (defined in POWER_OFF_DELAY) the state will be off regardless of the
+        # actual state. This is to have better feedback to the command in the UI, but the logic
+        # might cause other issues in the future
         if self._power_off_in_progress():
             return MediaPlayerState.OFF
 
@@ -1096,7 +1136,7 @@ class SamsungTVDevice(MediaPlayerEntity):
     @property
     def channel_list(self):
         """List of available channels."""
-        if self._channel_list is None:
+        if not self._channel_list:
             return None
         return list(self._channel_list)
 
@@ -1550,14 +1590,8 @@ class SamsungTVDevice(MediaPlayerEntity):
         """Implement the websocket media browsing helper."""
         return await media_source.async_browse_media(self.hass, media_content_id)
 
-    async def async_select_source(self, source, reset_delayed=True):
+    async def async_select_source(self, source):
         """Select input source."""
-        if not reset_delayed:
-            if self._st:
-                if self._st.state != STStatus.STATE_ON:
-                    # wait for smartthings available
-                    return
-
         running_app = DEFAULT_APP
         self._delayed_set_source = None
 
@@ -1576,7 +1610,7 @@ class SamsungTVDevice(MediaPlayerEntity):
             running_app = source
             await self._async_launch_app(app_id)
             if self._st:
-                self._st.set_application(self._app_list_ST[source])
+                self._st.set_application(self._app_list_st[source])
         elif self._channel_list and source in self._channel_list:
             source_key = self._channel_list[source]
             await self._async_set_channel(source_key)
@@ -1587,6 +1621,15 @@ class SamsungTVDevice(MediaPlayerEntity):
 
         self._running_app = running_app
         self._source = source
+
+    async def _async_select_source_delayed(self, source):
+        """Select input source with delayed ST option."""
+        if self._st:
+            if self._st.state != STStatus.STATE_ON:
+                # wait for smartthings available
+                return
+
+        await self.async_select_source(source)
 
     async def async_select_sound_mode(self, sound_mode):
         """Select sound mode."""
@@ -1599,27 +1642,6 @@ class SamsungTVDevice(MediaPlayerEntity):
         if not self._st:
             raise NotImplementedError()
         await self._st.async_set_picture_mode(picture_mode)
-
-    @property
-    def extra_state_attributes(self):
-        """Return the optional state attributes."""
-        data = {ATTR_IP_ADDRESS: self._host}
-        if self._ws.artmode_status != ArtModeStatus.Unsupported:
-            status_on = self._ws.artmode_status == ArtModeStatus.On
-            data.update({ATTR_ART_MODE_STATUS: STATE_ON if status_on else STATE_OFF})
-        if self._st:
-            picture_mode = self._st.picture_mode
-            picture_mode_list = self._st.picture_mode_list
-            if picture_mode:
-                data[ATTR_PICTURE_MODE] = picture_mode
-            if picture_mode_list:
-                data[ATTR_PICTURE_MODE_LIST] = picture_mode_list
-
-        return data
-
-    async def async_will_remove_from_hass(self):
-        """Run when entity will be removed from hass."""
-        await self.hass.async_add_executor_job(self._ws.stop_client)
 
     async def _async_switch_entity(self, power_on: bool):
         """Switch on/off related configure HA entity."""

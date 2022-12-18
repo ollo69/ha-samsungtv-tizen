@@ -50,18 +50,27 @@
                     "use_st_status_info": "Usa informazioni Stato TV da SmartThings",
                     "use_st_channel_info": "Usa informazioni Canale TV da SmartThings",
                     "show_channel_number": "Usa informazioni Numero Canale TV da SmartThings",
-                    "power_on_method": "Metodo usato per accendere la TV",
+                    "app_load_method": "Modalità caricamento lista applicazioni all'avvio",
                     "logo_option": "Visualizza il logo per sorgenti, apps e canali conosciuti",
                     "use_local_logo": "Permetti l'uso delle immagini logo locali",
-                    "sync_turn_off": "Elenco entit\u00e0 da Spegnere con la TV",
-                    "sync_turn_on": "Elenco entit\u00e0 da Accendere con la TV",
+                    "power_on_method": "Metodo usato per accendere la TV",
                     "show_adv_opt": "Mostra opzioni avanzate"
+                }
+            },
+            "menu": {
+                "title": "Menù opzioni SamsungTV Smart",
+                "menu_options": {
+                    "init": "Torna alla pagina principale",
+                    "adv_opt": "Opzioni avanzate",
+                    "sync_ent": "Configurazione entità collegate",
+                    "app_list": "Configurazione lista applicazioni",
+                    "channel_list": "Configurazione lista canali",
+                    "source_list": "Configurazione lista sorgenti"
                 }
             },
             "adv_opt": {
                 "title": "Opzioni avanzate SamsungTV Smart",
                 "data": {
-                    "app_load_method": "Modalità caricamento lista applicazioni all'avvio",
                     "app_launch_method": "Metodo usato per lanciare le applicazioni",
                     "dump_apps": "Mostra lista apps nel file di log all'avvio (se possibile)",
                     "use_mute_check": "Utilizza lo stato di volume muto per identificare false accensioni",
@@ -70,6 +79,31 @@
                     "ping_port": "Porta TCP usata per identificare lo stato (0 per ICMP)",
                     "ext_power_entity": "Binary sensor usato per aiutare a identificare lo stato",
                     "toggle_art_mode": "Pulsante di accensione passa a art mode (solo per Frame TV)"
+                }
+            },
+            "sync_ent": {
+                "title": "Entità collegate SamsungTV Smart",
+                "data": {
+                    "sync_turn_off": "Elenco entit\u00e0 da Spegnere con la TV",
+                    "sync_turn_on": "Elenco entit\u00e0 da Accendere con la TV"
+                }
+            },
+            "app_list": {
+                "title": "Configurazione lista applicazioni SamsungTV Smart",
+                "data": {
+                    "app_list": "Lista applicazioni:"
+                }
+            },
+            "channel_list": {
+                "title": "Configurazione lista canali SamsungTV Smart",
+                "data": {
+                    "channel_list": "Lista canali:"
+                }
+            },
+            "source_list": {
+                "title": "Configurazione lista sorgenti SamsungTV Smart",
+                "data": {
+                    "source_list": "Lista sorgenti:"
                 }
             }
         }

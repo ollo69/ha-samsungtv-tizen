@@ -88,6 +88,8 @@ SERVICE_SET_ART_MODE = "set_art_mode"
 SERVICE_TURN_OFF = "turn_off"
 SERVICE_TURN_ON = "turn_on"
 
+SIGNAL_CONFIG_ENTITY = f"{DOMAIN}_config"
+
 STD_APP_LIST = {
     # app_id: smartthings app id (if different and available)
     "org.tizen.browser": {"st_app_id": "", "logo": "tizenbrowser.png"},  # Internet

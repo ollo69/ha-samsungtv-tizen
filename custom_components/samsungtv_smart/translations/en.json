@@ -45,23 +45,32 @@
     "options": {
         "step": {
             "init": {
-                "title": "SamsungTV Smart Options",
+                "title": "SamsungTV Smart options",
                 "data": {
                     "use_st_status_info": "Use SmartThings TV Status information",
                     "use_st_channel_info": "Use SmartThings TV Channels information",
                     "show_channel_number": "Use SmartThings TV Channels number information",
-                    "power_on_method": "Method used to turn on TV",
+                    "app_load_method": "Applications list load mode at startup",
                     "logo_option": "Display a logo for known sources, apps and channels",
                     "use_local_logo": "Allow use of local logo images",
-                    "sync_turn_off": "List of entity to Power OFF with TV",
-                    "sync_turn_on": "List of entity to power ON with TV",
+                    "power_on_method": "Method used to turn on TV",
                     "show_adv_opt": "Show advanced options"
                 }
             },
+            "menu": {
+                "title": "SamsungTV Smart options menu",
+                "menu_options": {
+                    "init": "Back to main page",
+                    "adv_opt": "Advanced options",
+                    "sync_ent": "Synched entities configuration",
+                    "app_list": "Applications list configuration",
+                    "channel_list": "Channels list configuration",
+                    "source_list": "Sources list configuration"
+                }
+            },
             "adv_opt": {
-                "title": "SamsungTV Smart Advanced options",
+                "title": "SamsungTV Smart advanced options",
                 "data": {
-                    "app_load_method": "Applications list load mode at startup",
                     "app_launch_method": "Applications launch method used",
                     "dump_apps": "Dump apps list on log file at startup (when possible)",
                     "use_mute_check": "Use volume mute status to detect fake power ON",
@@ -70,6 +79,31 @@
                     "ping_port": "TCP port used to check power status (0 for ICMP)",
                     "ext_power_entity": "Binary sensor to help detect power status",
                     "toggle_art_mode": "Power button switch to art mode (Frame TV only)"
+                }
+            },
+            "sync_ent": {
+                "title": "SamsungTV Smart synched entities",
+                "data": {
+                    "sync_turn_off": "List of entities to Power OFF with TV",
+                    "sync_turn_on": "List of entities to power ON with TV"
+                }
+            },
+            "app_list": {
+                "title": "SamsungTV Smart applications list configuration",
+                "data": {
+                    "app_list": "Applications list:"
+                }
+            },
+            "channel_list": {
+                "title": "SamsungTV Smart channels list configuration",
+                "data": {
+                    "channel_list": "Channels list:"
+                }
+            },
+            "source_list": {
+                "title": "SamsungTV Smart sources list configuration",
+                "data": {
+                    "source_list": "Sources list:"
                 }
             }
         }

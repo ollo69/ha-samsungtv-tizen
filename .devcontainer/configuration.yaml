@@ -13,3 +13,24 @@ logger:
   default: info
   #logs:
   #  custom_components.samsungtv_smart: debug
+
+samsungtv_smart:
+  # TV Samnsung
+  - host: 192.168.10.11
+    source_list:
+      { "TV": "ST_TV", "Sky Italia": "ST_HDMI1", "BluRay Player": "ST_HDMI2" }
+    app_list:
+      {
+        "Netflix": "3201907018807/org.tizen.netflix-app",
+        "Disney+": "3201901017640/MCmYXNxgcu.DisneyPlus",
+        "Paramount+": "3202110025305/rJyOSqC6Up.PPlusIntl",
+        "PrimeVideo": "3201512006785/org.tizen.ignition",
+        "Infinity": "3201609010702/g3zzYA7yO8.InfinityNew",
+        "RaiPlay": "111399002034/5im3FztIhW.RaiTVtizen",
+        "CHILI": "3201505002690/vYlbEeT4gk.ChiliTizen",
+        "DAZN": "3201806016390/yu1NM3vHsU.DAZN",
+        "YouTube": "111299001912/9Ur5IzDKqV.TizenYouTube",
+        "Internet": "org.tizen.browser",
+      }
+    channel_list: '{"Rai1": "1@TV", "Rai2": "2@TV", "SkyTG24": "100@Sky Italia", "FoxHD": "112@Sky Italia"}'
+    #timeout: 5
