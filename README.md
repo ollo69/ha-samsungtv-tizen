@@ -120,13 +120,6 @@ When enabled then the TV Channel Names will show as media titles, by setting thi
 TV Channel Number will also be attached to the end of the media title (when applicable).<br/>
 **Note: not always SmartThings provide the information for channel_name and channel_number.**<br/>
 
-- **Applications list load mode at startup**<br/>
-Possible values: `All Apps`, `Default Apps` and `Not Load`<br/>
-This option determine the mode application list is automatic generated.<br>
-With `All Apps` the list will contain all apps installed on the TV, with `Default Apps` will be generated a minimal list
-with only the most common application, with `Not Load` application list will be empty.<br/>
-**Note: If a custom `Application List` in config options is defined this option is not used.**<br>
-
 - **Logo options**<br/>
 The background color and channel / service logo preference to use, example: "white-color" (background: white, logo: color).<br/>
 Supported values: "none", "white-color", "dark-white", "blue-color", "blue-white", "darkblue-white", "transparent-color", "transparent-white"<br/>
@@ -144,6 +137,13 @@ You can add new logo images in this folder, using the following rules for logo f
   the string `plus`
   - must have the `.png` suffix
   - must be in `png` format (suggested size is 400x400 pixels)
+
+- **Applications list load mode at startup**<br/>
+Possible values: `All Apps`, `Default Apps` and `Not Load`<br/>
+This option determine the mode application list is automatic generated.<br>
+With `All Apps` the list will contain all apps installed on the TV, with `Default Apps` will be generated a minimal list
+with only the most common application, with `Not Load` application list will be empty.<br/>
+**Note: If a custom `Application List` in config options is defined this option is not available.**<br>
 
 - **Method used to turn on TV**<br/>
 Possible values: `WOL Packet` and `SmartThings`<br/>
@@ -212,7 +212,7 @@ This call the service `homeassistant.turn_on` for maximum the first 4 entity in 
 
 ### Sources list configuration
 
-This contains the KEYS visible sources in the dropdown list in media player UI.<br/> 
+This contains the KEYS visible sources in the dropdown list in media player UI.<br/>
 You can configure the pair list `Name: Key` using the yaml editor in the option page. If a source list is present in
 `configuration.yaml`, it will be imported in the options the first time that the integration is loaded.<br/>
 
@@ -225,7 +225,7 @@ Default value:<br/>
 If SmartThings is [configured](https://github.com/ollo69/ha-samsungtv-smart/blob/master/docs/Smartthings.md) and the
 source_list not, the component will try to identify and configure automatically the sources configured on the TV with
 the relative associated names (new feature, tested on QLed TV). The created list is available in the HA log file.<br/>
-You can also chain KEYS, example: 
+You can also chain KEYS, example:
 ```
     1| TV: KEY_SOURCES+KEY_ENTER
 ```
@@ -246,15 +246,15 @@ This contains the APPS visible sources in the dropdown list in media player UI.<
 You can configure the pair list `Name: Key` using the yaml editor in the option page. If an application list is present in
 `configuration.yaml`, it will be imported in the options the first time that the integration is loaded.<br/>
 
-If the `Application list` is not manually configured, during startup the integration will try to automatically generate a list 
-of available application and a log message is generated with the content of the list. This list can be used to create a manual 
+If the `Application list` is not manually configured, during startup the integration will try to automatically generate a list
+of available application and a log message is generated with the content of the list. This list can be used to create a manual
 list following [app_list guide](https://github.com/ollo69/ha-samsungtv-smart/blob/master/docs/App_list.md). Automatic list
 generation not work with some TV models.<br/>
 
 Example value:
 ```
-    1| Netflix: 11101200001 
-    2| YouTube: 111299001912 
+    1| Netflix: 11101200001
+    2| YouTube: 111299001912
     3| Spotify: 3201606009684
 ```
 
@@ -268,7 +268,7 @@ recommended maximum 30 channels.<br/>
 You can configure the pair list `Name: Key` using the yaml editor in the option page. If a channel list is present in
 `configuration.yaml`, it will be imported in the options the first time that the integration is loaded.<br/>
 
-Example value: 
+Example value:
 ```
     1| MTV: 14
     2| Eurosport: 20
@@ -276,7 +276,7 @@ Example value:
 ```
 
 You can also specify the source that must be used for every channel. The source must be one of the source name defined in the `source_list`<br/>
-Example value: 
+Example value:
 ```
     1| MTV: 14@TV
     2| Eurosport: 20@TV

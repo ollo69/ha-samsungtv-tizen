@@ -480,12 +480,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
 
         opt_schema = {
             vol.Required(
-                CONF_APP_LOAD_METHOD,
-                default=options.get(
-                    CONF_APP_LOAD_METHOD, str(AppLoadMethod.Default.value)
-                ),
-            ): SelectSelector(_dict_to_select(APP_LOAD_METHODS)),
-            vol.Required(
                 CONF_LOGO_OPTION,
                 default=options.get(CONF_LOGO_OPTION, str(LOGO_OPTION_DEFAULT.value)),
             ): SelectSelector(_dict_to_select(LOGO_OPTIONS)),
@@ -494,6 +488,18 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 default=options.get(CONF_USE_LOCAL_LOGO, True),
             ): bool,
         }
+
+        if not self._app_list:
+            opt_schema.update(
+                {
+                    vol.Required(
+                        CONF_APP_LOAD_METHOD,
+                        default=options.get(
+                            CONF_APP_LOAD_METHOD, str(AppLoadMethod.Default.value)
+                        ),
+                    ): SelectSelector(_dict_to_select(APP_LOAD_METHODS)),
+                }
+            )
 
         if self._use_st:
             data_schema = vol.Schema(
