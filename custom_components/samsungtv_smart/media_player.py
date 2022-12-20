@@ -400,21 +400,32 @@ class SamsungTVDevice(MediaPlayerEntity):
         return dict(dev_info)
 
     @staticmethod
-    def _split_app_list(app_list, sep=ST_APP_SEPARATOR):
+    def _split_app_list(app_list: dict[str, str]) -> list[dict[str, str]]:
         """Split the application list for standard and SmartThings."""
-        retval = {"app": {}, "appST": {}}
+        apps = {}
+        apps_st = {}
 
-        for app_name, value in app_list.items():
-            value_split = value.split(sep, 1)
-            app_id = value_split[0]
-            if len(value_split) == 1:
+        for app_name, app_ids in app_list.items():
+            try:
+                app_id_split = app_ids.split(ST_APP_SEPARATOR, 1)
+            except (ValueError, AttributeError):
+                _LOGGER.warning(
+                    "Found invalid ID [%s] for App [%s], will be ignored",
+                    app_ids,
+                    app_name,
+                )
+                continue
+
+            app_id = app_id_split[0]
+            if len(app_id_split) == 1:
                 _, st_app_id, _ = _get_default_app_info(app_id)
             else:
-                st_app_id = value_split[1]
-            retval["app"][app_name] = app_id
-            retval["appST"][app_name] = st_app_id or app_id
+                st_app_id = app_id_split[1]
 
-        return retval
+            apps[app_name] = app_id
+            apps_st[app_name] = st_app_id or app_id
+
+        return [apps, apps_st]
 
     def _load_tv_lists(self, first_load=False):
         """Load TV sources, apps and channels."""
@@ -431,9 +442,9 @@ class SamsungTVDevice(MediaPlayerEntity):
         # load apps list
         app_list = self._get_option(CONF_APP_LIST, {})
         if app_list:
-            double_list = self._split_app_list(app_list, "/")
-            self._app_list = double_list["app"]
-            self._app_list_st = double_list["appST"]
+            double_list = self._split_app_list(app_list)
+            self._app_list = double_list[0]
+            self._app_list_st = double_list[1]
         else:
             self._app_list = None if first_load else {}
             self._app_list_st = None if first_load else {}
