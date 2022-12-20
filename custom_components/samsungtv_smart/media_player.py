@@ -410,7 +410,8 @@ class SamsungTVDevice(MediaPlayerEntity):
                 app_id_split = app_ids.split(ST_APP_SEPARATOR, 1)
             except (ValueError, AttributeError):
                 _LOGGER.warning(
-                    "Found invalid ID [%s] for App [%s], will be ignored",
+                    "Invalid ID [%s] for App [%s] will be ignored."
+                    " Use integration options to correct the App ID",
                     app_ids,
                     app_name,
                 )

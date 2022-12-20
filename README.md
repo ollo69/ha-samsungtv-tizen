@@ -253,9 +253,9 @@ generation not work with some TV models.<br/>
 
 Example value:
 ```
-    1| Netflix: 11101200001
-    2| YouTube: 111299001912
-    3| Spotify: 3201606009684
+    1| Netflix: "11101200001"
+    2| YouTube: "111299001912"
+    3| Spotify: "3201606009684"
 ```
 
 Known lists of App IDs: [List 1](https://github.com/tavicu/homebridge-samsung-tizen/issues/26#issuecomment-447424879),
@@ -270,9 +270,9 @@ You can configure the pair list `Name: Key` using the yaml editor in the option 
 
 Example value:
 ```
-    1| MTV: 14
-    2| Eurosport: 20
-    3| TLC: 21
+    1| MTV: "14"
+    2| Eurosport: "20"
+    3| TLC: "21"
 ```
 
 You can also specify the source that must be used for every channel. The source must be one of the source name defined in the `source_list`<br/>

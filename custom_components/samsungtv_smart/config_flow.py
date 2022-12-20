@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from numbers import Number
 import socket
 from typing import Any, Dict
 
@@ -542,14 +543,111 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         return self.async_show_menu(
             step_id="menu",
             menu_options=[
-                "init",
-                "adv_opt",
-                "sync_ent",
                 "source_list",
                 "app_list",
                 "channel_list",
+                "sync_ent",
+                "adv_opt",
+                "init",
+                "save_exit",
             ],
         )
+
+    async def async_step_save_exit(self, _):
+        """Handle save and exit flow."""
+        return self._save_entry(data=self._std_options)
+
+    async def async_step_source_list(self, user_input=None):
+        """Handle sources list flow."""
+        errors: dict[str, str] | None = None
+        if user_input is not None:
+            valid_list = _validate_tv_list(user_input[CONF_SOURCE_LIST])
+            if valid_list is not None:
+                self._source_list = valid_list
+                return await self.async_step_menu()
+            errors = {CONF_BASE: "invalid_tv_list"}
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_SOURCE_LIST, default=self._source_list
+                ): ObjectSelector()
+            }
+        )
+        return self.async_show_form(
+            step_id="source_list", data_schema=data_schema, errors=errors
+        )
+
+    async def async_step_app_list(self, user_input=None):
+        """Handle apps list flow."""
+        errors: dict[str, str] | None = None
+        if user_input is not None:
+            valid_list = _validate_tv_list(user_input[CONF_APP_LIST])
+            if valid_list is not None:
+                self._app_list = valid_list
+                return await self.async_step_menu()
+            errors = {CONF_BASE: "invalid_tv_list"}
+
+        data_schema = vol.Schema(
+            {vol.Optional(CONF_APP_LIST, default=self._app_list): ObjectSelector()}
+        )
+        return self.async_show_form(
+            step_id="app_list", data_schema=data_schema, errors=errors
+        )
+
+    async def async_step_channel_list(self, user_input=None):
+        """Handle channels list flow."""
+        errors: dict[str, str] | None = None
+        if user_input is not None:
+            valid_list = _validate_tv_list(user_input[CONF_CHANNEL_LIST])
+            if valid_list is not None:
+                self._channel_list = valid_list
+                return await self.async_step_menu()
+            errors = {CONF_BASE: "invalid_tv_list"}
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_CHANNEL_LIST, default=self._channel_list
+                ): ObjectSelector()
+            }
+        )
+        return self.async_show_form(
+            step_id="channel_list", data_schema=data_schema, errors=errors
+        )
+
+    async def async_step_sync_ent(self, user_input=None):
+        """Handle syncronized entity flow."""
+        if user_input is not None:
+            self._sync_ent_opt = user_input
+            return await self.async_step_menu()
+        return self._async_sync_ent_form()
+
+    @callback
+    def _async_sync_ent_form(self):
+        """Return configuration form for syncronized entity."""
+        select_entities = EntitySelectorConfig(
+            domain=_async_get_domains_service(self.hass, SERVICE_TURN_ON),
+            exclude_entities=_async_get_entry_entities(self.hass, self._entry_id),
+            multiple=True,
+        )
+        options = _validate_options(self._sync_ent_opt)
+
+        data_schema = vol.Schema(
+            {
+                vol.Optional(
+                    CONF_SYNC_TURN_OFF,
+                    description={
+                        "suggested_value": options.get(CONF_SYNC_TURN_OFF, [])
+                    },
+                ): EntitySelector(select_entities),
+                vol.Optional(
+                    CONF_SYNC_TURN_ON,
+                    description={"suggested_value": options.get(CONF_SYNC_TURN_ON, [])},
+                ): EntitySelector(select_entities),
+            }
+        )
+        return self.async_show_form(step_id="sync_ent", data_schema=data_schema)
 
     async def async_step_adv_opt(self, user_input=None):
         """Handle advanced options flow."""
@@ -605,80 +703,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
         )
         return self.async_show_form(step_id="adv_opt", data_schema=data_schema)
 
-    async def async_step_sync_ent(self, user_input=None):
-        """Handle syncronized entity flow."""
-        if user_input is not None:
-            self._sync_ent_opt = user_input
-            return await self.async_step_menu()
-        return self._async_sync_ent_form()
-
-    @callback
-    def _async_sync_ent_form(self):
-        """Return configuration form for syncronized entity."""
-        select_entities = EntitySelectorConfig(
-            domain=_async_get_domains_service(self.hass, SERVICE_TURN_ON),
-            exclude_entities=_async_get_entry_entities(self.hass, self._entry_id),
-            multiple=True,
-        )
-        options = _validate_options(self._sync_ent_opt)
-
-        data_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_SYNC_TURN_OFF,
-                    description={
-                        "suggested_value": options.get(CONF_SYNC_TURN_OFF, [])
-                    },
-                ): EntitySelector(select_entities),
-                vol.Optional(
-                    CONF_SYNC_TURN_ON,
-                    description={"suggested_value": options.get(CONF_SYNC_TURN_ON, [])},
-                ): EntitySelector(select_entities),
-            }
-        )
-        return self.async_show_form(step_id="sync_ent", data_schema=data_schema)
-
-    async def async_step_app_list(self, user_input=None):
-        """Handle apps list flow."""
-        if user_input is not None:
-            self._app_list = user_input[CONF_APP_LIST]
-            return await self.async_step_menu()
-
-        data_schema = vol.Schema(
-            {vol.Optional(CONF_APP_LIST, default=self._app_list): ObjectSelector()}
-        )
-        return self.async_show_form(step_id="app_list", data_schema=data_schema)
-
-    async def async_step_channel_list(self, user_input=None):
-        """Handle channels list flow."""
-        if user_input is not None:
-            self._channel_list = user_input[CONF_CHANNEL_LIST]
-            return await self.async_step_menu()
-
-        data_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_CHANNEL_LIST, default=self._channel_list
-                ): ObjectSelector()
-            }
-        )
-        return self.async_show_form(step_id="channel_list", data_schema=data_schema)
-
-    async def async_step_source_list(self, user_input=None):
-        """Handle sources list flow."""
-        if user_input is not None:
-            self._source_list = user_input[CONF_SOURCE_LIST]
-            return await self.async_step_menu()
-
-        data_schema = vol.Schema(
-            {
-                vol.Optional(
-                    CONF_SOURCE_LIST, default=self._source_list
-                ): ObjectSelector()
-            }
-        )
-        return self.async_show_form(step_id="source_list", data_schema=data_schema)
-
 
 def _validate_options(options: dict):
     """Validate options format"""
@@ -692,6 +716,20 @@ def _validate_options(options: dict):
         else:
             valid_options[opt_key] = opt_val
     return valid_options
+
+
+def _validate_tv_list(input_list: dict[str, Any]) -> dict[str, str] | None:
+    """Validate TV list from object selector."""
+    valid_list = {}
+    for name_val, id_val in input_list.items():
+        if not id_val:
+            continue
+        if isinstance(id_val, Number):
+            id_val = str(id_val)
+        if not isinstance(id_val, str):
+            return None
+        valid_list[name_val] = id_val
+    return valid_list
 
 
 def _dict_to_select(opt_dict: dict):

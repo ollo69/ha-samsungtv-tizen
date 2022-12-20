@@ -60,12 +60,13 @@
             "menu": {
                 "title": "SamsungTV Smart options menu",
                 "menu_options": {
-                    "init": "Back to main page",
                     "adv_opt": "Advanced options",
-                    "sync_ent": "Synched entities configuration",
                     "app_list": "Applications list configuration",
                     "channel_list": "Channels list configuration",
-                    "source_list": "Sources list configuration"
+                    "init": "Back to basic options",
+                    "save_exit": "Save options and exit",
+                    "source_list": "Sources list configuration",
+                    "sync_ent": "Synched entities configuration"
                 }
             },
             "adv_opt": {
@@ -106,6 +107,9 @@
                     "source_list": "Sources list:"
                 }
             }
+        },
+        "error": {
+            "invalid_tv_list": "Invalid format. Please check documentation"
         }
     }
 }

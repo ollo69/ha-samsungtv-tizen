@@ -60,12 +60,13 @@
             "menu": {
                 "title": "Menù opzioni SamsungTV Smart",
                 "menu_options": {
-                    "init": "Torna alla pagina principale",
                     "adv_opt": "Opzioni avanzate",
-                    "sync_ent": "Configurazione entità collegate",
                     "app_list": "Configurazione lista applicazioni",
                     "channel_list": "Configurazione lista canali",
-                    "source_list": "Configurazione lista sorgenti"
+                    "init": "Torna alle opzioni di base",
+                    "save_exit": "Salva le opzioni ed esci",
+                    "source_list": "Configurazione lista sorgenti",
+                    "sync_ent": "Configurazione entità collegate"
                 }
             },
             "adv_opt": {
@@ -106,6 +107,9 @@
                     "source_list": "Lista sorgenti:"
                 }
             }
+        },
+        "error": {
+            "invalid_tv_list": "Formato not valido. Controlla la documentazione"
         }
     }
 }
