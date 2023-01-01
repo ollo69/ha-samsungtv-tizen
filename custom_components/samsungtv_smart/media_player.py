@@ -130,6 +130,7 @@ ST_APP_SEPARATOR = "/"
 ST_UPDATE_TIMEOUT = 5
 
 YT_APP_IDS = ("111299001912", "9Ur5IzDKqV.TizenYouTube")
+YT_VIDEO_QS = "v"
 
 MAX_CONTROLLED_ENTITY = 4
 
@@ -1537,11 +1538,11 @@ class SamsungTVDevice(MediaPlayerEntity):
             return None
 
         url_query = parse_qs(url_parsed.query)
-        if b"v" not in url_query:
+        if YT_VIDEO_QS not in url_query:
             _LOGGER.debug("Youtube video ID not found")
             return None
 
-        video_id = str(url_query[b"v"][0])
+        video_id = url_query[YT_VIDEO_QS][0]
         _LOGGER.debug("Youtube video ID: %s", video_id)
         return video_id
 
