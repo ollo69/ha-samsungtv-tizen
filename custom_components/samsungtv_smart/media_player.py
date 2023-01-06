@@ -317,7 +317,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._ping_port: int = 0
         self._use_st_status: bool = True
         self._use_channel_info: bool = True
-        self._use_mute_check: bool = True
+        self._use_mute_check: bool = False
         self._show_channel_number: bool = False
 
         # update config options for first time
@@ -461,7 +461,7 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._ping_port = self._get_option(CONF_PING_PORT, 0)
         self._use_st_status = self._get_option(CONF_USE_ST_STATUS_INFO, True)
         self._use_channel_info = self._get_option(CONF_USE_ST_CHANNEL_INFO, True)
-        self._use_mute_check = self._get_option(CONF_USE_MUTE_CHECK, True)
+        self._use_mute_check = self._get_option(CONF_USE_MUTE_CHECK, False)
         self._show_channel_number = self._get_option(CONF_SHOW_CHANNEL_NR, False)
 
     def _get_option(self, param, default=None):

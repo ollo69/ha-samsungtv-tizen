@@ -692,7 +692,7 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                 ): EntitySelector(select_entities),
                 vol.Required(
                     CONF_USE_MUTE_CHECK,
-                    default=options.get(CONF_USE_MUTE_CHECK, True),
+                    default=options.get(CONF_USE_MUTE_CHECK, False),
                 ): bool,
                 vol.Required(
                     CONF_DUMP_APPS,

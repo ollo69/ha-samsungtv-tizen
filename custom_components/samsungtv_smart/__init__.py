@@ -217,7 +217,7 @@ def _migrate_token(hass: HomeAssistant, entry: ConfigEntry, hostname: str) -> No
             return
 
     try:
-        with open(token_file, "r") as os_token_file:
+        with open(token_file, "r", encoding="utf-8") as os_token_file:
             token = os_token_file.readline()
     except Exception as exc:  # pylint: disable=broad-except
         _LOGGER.error("Error reading token file %s: %s", token_file, str(exc))

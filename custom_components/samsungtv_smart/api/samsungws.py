@@ -252,7 +252,7 @@ class SamsungTVWS:
         """Get current token."""
         if self.token_file is not None:
             try:
-                with open(self.token_file, "r") as token_file:
+                with open(self.token_file, "r", encoding="utf-8") as token_file:
                     return token_file.readline()
             except Exception as exc:  # pylint: disable=broad-except
                 _LOGGING.error("Failed to read TV token file: %s", str(exc))
@@ -264,7 +264,7 @@ class SamsungTVWS:
         _LOGGING.debug("New token %s", token)
         if self.token_file is not None:
             _LOGGING.debug("Save new token to file %s", self.token_file)
-            with open(self.token_file, "w") as token_file:
+            with open(self.token_file, "w", encoding="utf-8") as token_file:
                 token_file.write(token)
             return
 
