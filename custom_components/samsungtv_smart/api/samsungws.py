@@ -20,6 +20,8 @@ Copyright (C) 2020 Ollo69
     Boston, MA  02110-1335  USA
 
 """
+from __future__ import annotations
+
 import base64
 from datetime import datetime
 from enum import Enum
@@ -229,14 +231,16 @@ class SamsungTVWS:
 
     def __init__(
         self,
-        host,
-        token=None,
-        token_file=None,
-        port=8001,
-        timeout=None,
-        key_press_delay=1.0,
-        name="SamsungTvRemote",
-        app_list=None,
+        host: str,
+        *,
+        token: str | None = None,
+        token_file: str | None = None,
+        port: int | None = 8001,
+        timeout: int | None = None,
+        key_press_delay: float | None = 1.0,
+        name: str | None = "SamsungTvRemote",
+        app_list: dict | None = None,
+        ping_port: int | None = 0,
     ):
         """Initialize SamsungTVWS object."""
         self.host = host
@@ -244,10 +248,12 @@ class SamsungTVWS:
         self.token_file = token_file
         self.port = port or 8001
         self.timeout = None if timeout == 0 else timeout
-        self.key_press_delay = key_press_delay
+        self.key_press_delay = 1.0 if key_press_delay is None else key_press_delay
         self.name = name or "SamsungTvRemote"
+        self._app_list = dict(app_list) if app_list else None
+        self._ping_port = ping_port or 0
+
         self.connection = None
-        self._app_list = app_list
         self._artmode_status = ArtModeStatus.Unsupported
         self._power_on_requested = False
         self._power_on_requested_time = datetime.min
@@ -263,7 +269,6 @@ class SamsungTVWS:
 
         self._ping_thread = None
         self._ping_thread_run = False
-        self._ping_port = 9197
 
         self._ws_remote = None
         self._client_remote = None
@@ -321,6 +326,16 @@ class SamsungTVWS:
                 query["token"] = token
         ws_query = urlencode(query)
         return f"{ws_uri}?{ws_query}"
+
+    def set_ping_port(self, port: int):
+        """Set a new ping port."""
+        self._ping_port = port
+
+    def update_app_list(self, app_list: dict | None):
+        """Update application list."""
+        if not app_list:
+            self._app_list = None
+        self._app_list = dict(app_list)
 
     def register_new_token_callback(self, func):
         """Register a callback function."""

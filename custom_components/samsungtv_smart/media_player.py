@@ -312,25 +312,20 @@ class SamsungTVDevice(MediaPlayerEntity):
         self._channel_list = None
 
         # config options reloaded on change
-        self._ping_port: int = 0
         self._use_st_status: bool = True
         self._use_channel_info: bool = True
         self._use_mute_check: bool = False
         self._show_channel_number: bool = False
 
-        # update config options for first time
-        self._update_config_options(True)
-
         # ws initialization
         ws_name = config.get(CONF_WS_NAME, self._attr_name)
         self._ws = SamsungTVWS(
-            name=f"{WS_PREFIX} {ws_name}",  # this is the name shown in the TV external device.
             host=self._host,
+            token=config.get(CONF_TOKEN),
             port=config.get(CONF_PORT, DEFAULT_PORT),
             timeout=config.get(CONF_TIMEOUT, DEFAULT_TIMEOUT),
             key_press_delay=KEYPRESS_DEFAULT_DELAY,
-            token=config.get(CONF_TOKEN),
-            app_list=self._app_list,
+            name=f"{WS_PREFIX} {ws_name}",  # this is the name shown in the TV external device.
         )
 
         def new_token_callback():
@@ -366,11 +361,8 @@ class SamsungTVDevice(MediaPlayerEntity):
             session=session,
         )
 
-    @callback
-    def _status_changed_callback(self):
-        """Called when status changed."""
-        _LOGGER.debug("status_changed_callback called")
-        self.async_schedule_update_ha_state(True)
+        # update config options for first time
+        self._update_config_options(True)
 
     async def async_added_to_hass(self):
         """Set config parameter when add to hass."""
@@ -468,11 +460,18 @@ class SamsungTVDevice(MediaPlayerEntity):
     def _update_config_options(self, first_load=False):
         """Update config options."""
         self._load_tv_lists(first_load)
-        self._ping_port = self._get_option(CONF_PING_PORT, 0)
         self._use_st_status = self._get_option(CONF_USE_ST_STATUS_INFO, True)
         self._use_channel_info = self._get_option(CONF_USE_ST_CHANNEL_INFO, True)
         self._use_mute_check = self._get_option(CONF_USE_MUTE_CHECK, False)
         self._show_channel_number = self._get_option(CONF_SHOW_CHANNEL_NR, False)
+        self._ws.update_app_list(self._app_list)
+        self._ws.set_ping_port(self._get_option(CONF_PING_PORT, 0))
+
+    @callback
+    def _status_changed_callback(self):
+        """Called when status changed."""
+        _LOGGER.debug("status_changed_callback called")
+        self.async_schedule_update_ha_state(True)
 
     def _get_option(self, param, default=None):
         """Get option from entity configuration."""
