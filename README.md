@@ -166,11 +166,6 @@ Use `Rest API Call` only if the other 2 methods do not work.<br/>
 This option allow to configure the number of time the WOL packet is sent to turn on TV. Increase the value
 until the TV properly turn-on.<br/>
 
-- **Seconds to delay power ON status**<br/>
-(default = 30, range from 0 to 60)<br/>
-This option allow to configure a delay to wait before setting the TV status to ON. This is used to avoid false
-ON status for TV that enable the network interface on regular interval also when the TV status is OFF.<br/>
-
 - **TCP port used to check power status**<br/>
 (default = 0, range from 0 to 65535)<br/>
 With this option is possible to check the availability of a specific port to determinate power status instead

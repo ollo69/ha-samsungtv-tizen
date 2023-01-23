@@ -47,7 +47,6 @@ CONF_EXT_POWER_ENTITY = "ext_power_entity"
 CONF_LOAD_ALL_APPS = "load_all_apps"
 CONF_LOGO_OPTION = "logo_option"
 CONF_PING_PORT = "ping_port"
-CONF_POWER_ON_DELAY = "power_on_delay"
 CONF_POWER_ON_METHOD = "power_on_method"
 CONF_SHOW_CHANNEL_NR = "show_channel_number"
 CONF_SOURCE_LIST = "source_list"
@@ -68,7 +67,6 @@ CONF_SCAN_APP_HTTP = "scan_app_http"
 
 DEFAULT_APP = "TV/HDMI"
 DEFAULT_PORT = 8001
-DEFAULT_POWER_ON_DELAY = 30
 DEFAULT_SOURCE_LIST = {"TV": "KEY_TV", "HDMI": "KEY_HDMI"}
 DEFAULT_TIMEOUT = 6
 

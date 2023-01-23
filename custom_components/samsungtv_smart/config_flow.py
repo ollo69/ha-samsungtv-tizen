@@ -52,7 +52,6 @@ from .const import (
     CONF_EXT_POWER_ENTITY,
     CONF_LOGO_OPTION,
     CONF_PING_PORT,
-    CONF_POWER_ON_DELAY,
     CONF_POWER_ON_METHOD,
     CONF_SHOW_CHANNEL_NR,
     CONF_SOURCE_LIST,
@@ -65,7 +64,6 @@ from .const import (
     CONF_USE_ST_STATUS_INFO,
     CONF_WOL_REPEAT,
     CONF_WS_NAME,
-    DEFAULT_POWER_ON_DELAY,
     DOMAIN,
     MAX_WOL_REPEAT,
     RESULT_ST_DEVICE_NOT_FOUND,
@@ -117,7 +115,6 @@ ADVANCED_OPTIONS = [
     CONF_EXT_POWER_ENTITY,
     CONF_PING_PORT,
     CONF_WOL_REPEAT,
-    CONF_POWER_ON_DELAY,
     CONF_TOGGLE_ART_MODE,
     CONF_USE_MUTE_CHECK,
 ]
@@ -677,10 +674,6 @@ class OptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_WOL_REPEAT,
                     default=min(options.get(CONF_WOL_REPEAT, 1), MAX_WOL_REPEAT),
                 ): vol.All(vol.Coerce(int), vol.Clamp(min=1, max=MAX_WOL_REPEAT)),
-                vol.Required(
-                    CONF_POWER_ON_DELAY,
-                    default=options.get(CONF_POWER_ON_DELAY, DEFAULT_POWER_ON_DELAY),
-                ): vol.All(vol.Coerce(int), vol.Clamp(min=0, max=60)),
                 vol.Required(
                     CONF_PING_PORT, default=options.get(CONF_PING_PORT, 0)
                 ): vol.All(vol.Coerce(int), vol.Clamp(min=0, max=65535)),
