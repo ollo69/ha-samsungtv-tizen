@@ -89,8 +89,10 @@ SERVICE_TURN_ON = "turn_on"
 SIGNAL_CONFIG_ENTITY = f"{DOMAIN}_config"
 
 STD_APP_LIST = {
-    # app_id: smartthings app id (if different and available)
-    "org.tizen.browser": {"st_app_id": "", "logo": "tizenbrowser.png"},  # Internet
+    "org.tizen.browser": {
+        "st_app_id": "",
+        "logo": "tizenbrowser.png",
+    },  # Internet
     "11101200001": {
         "st_app_id": "RN1MCdNq8t.Netflix",
         "logo": "netflix.png",
@@ -107,7 +109,10 @@ STD_APP_LIST = {
         "st_app_id": "org.tizen.ignition",
         "logo": "primevideo.png",
     },  # Prime Video
-    # "3201512006785": {"st_app_id": "evKhCgZelL.AmazonIgnitionLauncher2", "logo": ""},  # Prime Video
+    # "3201512006785": {
+    #     "st_app_id": "evKhCgZelL.AmazonIgnitionLauncher2",
+    #     "logo": "",
+    # },  # Prime Video
     "3201901017640": {
         "st_app_id": "MCmYXNxgcu.DisneyPlus",
         "logo": "disneyplus.png",
@@ -120,10 +125,20 @@ STD_APP_LIST = {
         "st_app_id": "4ovn894vo9.Facebook",
         "logo": "facebook.png",
     },  # Facebook
-    "3201806016390": {"st_app_id": "yu1NM3vHsU.DAZN", "logo": "dazn.png"},  # Dazn
-    "3201601007250": {"st_app_id": "QizQxC7CUf.PlayMovies", "logo": ""},  # Google Play
+    "3201806016390": {
+        "st_app_id": "yu1NM3vHsU.DAZN",
+        "logo": "dazn.png",
+    },  # Dazn
+    "3201601007250": {
+        "st_app_id": "QizQxC7CUf.PlayMovies",
+        "logo": "",
+    },  # Google Play
     "3201606009684": {
         "st_app_id": "rJeHak5zRg.Spotify",
         "logo": "spotify.png",
     },  # Spotify
+    "3201512006963": {
+        "st_app_id": "kIciSQlYEM.plex",
+        "logo": "",
+    },  # Plex
 }

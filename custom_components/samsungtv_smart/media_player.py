@@ -17,7 +17,9 @@ from websocket import WebSocketTimeoutException
 
 from homeassistant.components import media_source
 from homeassistant.components.media_player import (
+    ATTR_MEDIA_ENQUEUE,
     MediaPlayerDeviceClass,
+    MediaPlayerEnqueue,
     MediaPlayerEntity,
     MediaPlayerEntityFeature,
     MediaPlayerState,
@@ -56,6 +58,7 @@ from homeassistant.util import Throttle, dt as dt_util
 from homeassistant.util.async_ import run_callback_threadsafe
 
 from .api.samsungws import ArtModeStatus, SamsungTVAsyncRest, SamsungTVWS
+from .api.samsungcast import SamsungCastTube
 from .api.smartthings import SmartThingsTV, STStatus
 from .api.upnp import SamsungUPnP
 from .const import (
@@ -131,6 +134,7 @@ ST_UPDATE_TIMEOUT = 5
 
 YT_APP_IDS = ("111299001912", "9Ur5IzDKqV.TizenYouTube")
 YT_VIDEO_QS = "v"
+YT_SVIDEO = "/shorts/"
 
 MAX_CONTROLLED_ENTITY = 4
 
@@ -360,6 +364,9 @@ class SamsungTVDevice(MediaPlayerEntity):
             logo_file_download=logo_file,
             session=session,
         )
+
+        # YouTube cast
+        self._cast_api = SamsungCastTube(self._host)
 
         # update config options for first time
         self._update_config_options(True)
@@ -1488,27 +1495,69 @@ class SamsungTVDevice(MediaPlayerEntity):
 
     def _get_youtube_video_id(self, url):
         """Try to get youtube video id from url."""
-        if not self._get_youtube_app_id():
-            _LOGGER.debug("You tube App ID not available")
-            return None
-
         url_parsed = urlparse(url)
         url_host = str(url_parsed.hostname).casefold()
+        url_path = url_parsed.path
         if url_host.find("youtube") < 0:
             _LOGGER.debug("URL not related to Youtube")
             return None
 
+        video_id = None
         url_query = parse_qs(url_parsed.query)
-        if YT_VIDEO_QS not in url_query:
-            _LOGGER.debug("Youtube video ID not found")
+        if YT_VIDEO_QS in url_query:
+            video_id = url_query[YT_VIDEO_QS][0]
+        elif url_path and str(url_path).casefold().startswith(YT_SVIDEO):
+            video_id = url_path[len(YT_SVIDEO) :]
+
+        if not video_id:
+            _LOGGER.warning("Youtube video ID not found in url: %s", url)
             return None
 
-        video_id = url_query[YT_VIDEO_QS][0]
+        if not self._get_youtube_app_id():
+            _LOGGER.warning("Youtube app ID not available, configure in apps list")
+            return None
+
         _LOGGER.debug("Youtube video ID: %s", video_id)
         return video_id
 
-    async def async_play_media(self, media_type, media_id, **kwargs):
+    def _cast_youtube_video(self, video_id: str, enqueue: MediaPlayerEnqueue):
+        """
+        Cast a youtube video using samsungcast library.
+        This method is sync and must run in job executor.
+        """
+        if enqueue == MediaPlayerEnqueue.PLAY:
+            self._cast_api.play_video(video_id)
+        elif enqueue == MediaPlayerEnqueue.NEXT:
+            self._cast_api.play_next(video_id)
+        elif enqueue == MediaPlayerEnqueue.ADD:
+            self._cast_api.add_to_queue(video_id)
+        elif enqueue == MediaPlayerEnqueue.REPLACE:
+            self._cast_api.clear_queue()
+            self._cast_api.play_video(video_id)
+
+    async def _async_play_youtube_video(
+        self, video_id: str, enqueue: MediaPlayerEnqueue
+    ):
+        """Play a YouTube video using YouTube app."""
+        run_app_id = None
+        if self._running_app != DEFAULT_APP:
+            run_app_id = self._app_list.get(self._running_app)
+
+        # launch youtube app if not running
+        if run_app_id != self._yt_app_id:
+            await self._async_launch_app(self._yt_app_id)
+            await asyncio.sleep(3)  # we wait for YouTube app to start
+
+        await self.hass.async_add_executor_job(
+            self._cast_youtube_video, video_id, enqueue
+        )
+
+    async def async_play_media(
+        self, media_type: MediaType | str, media_id: str, **kwargs
+    ):
         """Support running different media type command."""
+        enqueue: MediaPlayerEnqueue | None = kwargs.get(ATTR_MEDIA_ENQUEUE)
+
         if media_source.is_media_source_id(media_id):
             media_type = MediaType.URL
             play_item = await media_source.async_resolve_media(self.hass, media_id)
@@ -1544,12 +1593,12 @@ class SamsungTVDevice(MediaPlayerEntity):
 
         # Open url or youtube app
         elif media_type == MediaType.URL:
-            if await self._upnp.async_set_current_media(media_id):
-                self._playing = True
+            if enqueue and (video_id := self._get_youtube_video_id(media_id)):
+                await self._async_play_youtube_video(video_id, enqueue)
                 return
 
-            if video_id := self._get_youtube_video_id(media_id):
-                await self._async_launch_app(self._yt_app_id, video_id)
+            if await self._upnp.async_set_current_media(media_id):
+                self._playing = True
                 return
 
             await self.async_send_command(media_id, CMD_OPEN_BROWSER)
