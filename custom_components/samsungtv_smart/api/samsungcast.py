@@ -2,10 +2,10 @@
 from __future__ import annotations
 
 import logging
-import requests
 import xml.etree.ElementTree as ET
 
 from casttube import YouTubeSession
+import requests
 
 
 _LOGGER = logging.getLogger(__name__)
