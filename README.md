@@ -429,7 +429,22 @@ For more information about how we get the running app, read the [app_list guide]
   "media_content_id": "FILE_URL",
 }
 ```
-_Replace FILE_URL with the url of your file._
+Replace FILE_URL with the url of your file
+
+### Cast to YouTube
+
+`service: media_player.play_media`
+
+```json
+{
+  "media_content_type": "URL"
+  "media_content_id": YOUTUBE_URL
+  "enqueue": "play"
+  "entity_id": "media_player.YOUR_SAMSUNG_TV_ENTITY"
+```
+Replace YOUTUBE_URL with the url of the video you want to play
+All 4 enqueue modes are supported. Shorts videos URL are also supported.
+**Note**: Youtube app must be running in TV before calling the service.
 
 ### Send Keys
 ```
