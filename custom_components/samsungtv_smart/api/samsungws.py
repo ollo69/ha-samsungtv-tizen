@@ -261,7 +261,10 @@ class SamsungTVWS:
         self._power_on_artmode = False
 
         self._installed_app = {}
-        self._running_app = None
+        self._running_apps: dict[str, datetime] = {}
+        self._running_app: str | None = None
+        self._running_app_changed: bool | None = None
+        self._last_running_scan = datetime.utcnow()
         self._app_type = {}
         self._sync_lock = Lock()
         self._last_app_scan = datetime.min
@@ -576,6 +579,7 @@ class SamsungTVWS:
         self._run_forever(self._ws_control, sslopt=sslopt, ping_interval=3600)
         self._ws_control.close()
         self._ws_control = None
+        self._running_app_changed = None
         _LOGGING.debug("Thread SamsungControl terminated")
 
     def _on_ping_control(self, _, payload):
@@ -615,29 +619,33 @@ class SamsungTVWS:
 
     def _set_running_app(self, response):
         """Set the current running app based on received message."""
-        app_id = response.get("id")
-        if not app_id:
+        if not (app_id := response.get("id")):
             return
-        result = response.get("result")
-        if result is None:
+        if (result := response.get("result")) is None:
             return
-        elif isinstance(result, bool):
+        if isinstance(result, bool):
             is_running = result
-        else:
-            is_running = result.get("visible")
-        if is_running is None:
+        elif (is_running := result.get("visible")) is None:
             return
 
+        self._last_running_scan = datetime.utcnow()
+        self._running_apps[app_id] = self._last_running_scan
         if self._running_app:
             if is_running and app_id != self._running_app:
                 _LOGGING.debug("app running: %s", app_id)
                 self._running_app = app_id
+                self._running_app_changed = True
             elif not is_running and app_id == self._running_app:
                 _LOGGING.debug("app stopped: %s", app_id)
                 self._running_app = None
+                self._running_app_changed = True
         elif is_running:
             _LOGGING.debug("app running: %s", app_id)
             self._running_app = app_id
+            self._running_app_changed = True
+
+        if self._running_app_changed is None:
+            self._running_app_changed = True
 
     def _manage_control_err(self, response):
         """Manage errors from control WS channel."""
@@ -818,6 +826,17 @@ class SamsungTVWS:
         """Return current running app."""
         return self._running_app
 
+    def is_app_running(self, app_id: str) -> bool | None:
+        """Return if app_id is running app."""
+        if app_id == self._running_app:
+            return True
+        if (last_seen := self._running_apps.get(app_id)) is None:
+            return None
+        if (self._last_running_scan - last_seen).total_seconds() >= 60:
+            self._running_apps.pop(app_id)
+            return None
+        return False
+
     def _ping_thread_method(self):
         """Start the ping thread that check the TV status."""
         ping = Ping(self.host)
@@ -843,6 +862,7 @@ class SamsungTVWS:
                     self._artmode_status = ArtModeStatus.Unavailable
             else:
                 self._check_art_mode()
+                self._notify_app_change()
 
         if self._power_on_requested:
             difference = (call_time - self._power_on_requested_time).total_seconds()
@@ -860,6 +880,18 @@ class SamsungTVWS:
                 self._ws_art.close()
         elif self._ws_remote:
             self._start_client(start_all=True)
+
+    def _notify_app_change(self):
+        """Notify that running app is changed."""
+        if not self._running_app_changed:
+            return
+        if not self._status_callback:
+            self._running_app_changed = False
+            return
+        last_change = (datetime.utcnow() - self._last_running_scan).total_seconds()
+        if last_change >= 2:  # delay 2 seconds before calling
+            self._running_app_changed = False
+            self._status_callback()
 
     def set_power_on_request(self, set_art_mode=False, power_on_delay=0):
         """Set a power on request status and save the time of the rquest."""

@@ -549,18 +549,19 @@ class SamsungTVDevice(MediaPlayerEntity):
 
         if self._app_list is not None:
 
+            st_running_app = None
             for app, app_id in self._app_list.items():
-                if self._ws.running_app:
-                    if app_id == self._ws.running_app:
-                        self._running_app = app
-                        return
+                if app_running := self._ws.is_app_running(app_id):
+                    self._running_app = app
+                    return
+                if app_running is False:
+                    continue
                 if self._st and self._st.channel_name != "":
                     st_app_id = self._app_list_st.get(app, "")
                     if st_app_id == self._st.channel_name:
-                        self._running_app = app
-                        return
+                        st_running_app = app
 
-        self._running_app = DEFAULT_APP
+        self._running_app = st_running_app or DEFAULT_APP
 
     def _get_st_sources(self):
         """Get sources from SmartThings."""
@@ -675,11 +676,8 @@ class SamsungTVDevice(MediaPlayerEntity):
             self._source = None
             return self._source
 
-        if self._running_app != DEFAULT_APP or not self._st:
-            self._source = self._running_app
-            return self._source
-
-        if self._st.state != STStatus.STATE_ON:
+        use_st: bool = self._st is not None and self._st.state == STStatus.STATE_ON
+        if self._running_app != DEFAULT_APP or not use_st:
             self._source = self._running_app
             return self._source
 
@@ -1001,10 +999,13 @@ class SamsungTVDevice(MediaPlayerEntity):
                         return self._st.channel
                     return None
 
-                if self._st.channel_name != "":
+                if (run_app := self._st.channel_name) != "":
                     # the channel name holds the running app ID
                     # regardless of the self._cloud_source value
-                    return self._st.channel_name
+                    # if the app ID is in the configured apps but is not running_app,
+                    # means that this is not the real running app / media title
+                    if run_app not in list(self._app_list_st.values()):
+                        return self._st.channel_name
 
         media_title = self._get_source()
         if media_title and media_title != DEFAULT_APP:
