@@ -91,7 +91,7 @@ KEY_LEFT|NavigationLeft
 KEY_RIGHT|NavigationRight
 KEY_RETURN|NavigationReturn/Back
 KEY_ENTER|NavigationEnter
-KEY_EXIT|NevigationExit
+KEY_EXIT|NavigationExit
 
 *Media Keys*
 ____________
