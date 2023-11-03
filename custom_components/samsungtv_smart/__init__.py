@@ -34,6 +34,8 @@ from homeassistant.const import (
 from homeassistant.core import HomeAssistant, callback
 import homeassistant.helpers.config_validation as cv
 from homeassistant.helpers.dispatcher import async_dispatcher_send
+from homeassistant.helpers.device_registry import CONNECTION_NETWORK_MAC
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.storage import STORAGE_DIR
 from homeassistant.helpers.typing import ConfigType
 
@@ -46,7 +48,9 @@ from .const import (
     ATTR_DEVICE_OS,
     CONF_APP_LIST,
     CONF_CHANNEL_LIST,
+    CONF_DEVICE_MODEL,
     CONF_DEVICE_NAME,
+    CONF_DEVICE_OS,
     CONF_LOAD_ALL_APPS,
     CONF_SCAN_APP_HTTP,
     CONF_SHOW_CHANNEL_NR,
@@ -57,6 +61,7 @@ from .const import (
     CONF_UPDATE_METHOD,
     CONF_WS_NAME,
     DATA_CFG_YAML,
+    DATA_DEV_INFO,
     DATA_OPTIONS,
     DEFAULT_PORT,
     DEFAULT_SOURCE_LIST,
@@ -82,6 +87,8 @@ DEVICE_INFO = {
     ATTR_DEVICE_MODEL: "modelName",
     ATTR_DEVICE_OS: "OS",
 }
+
+SAMSMART_PLATFORM = [Platform.MEDIA_PLAYER, Platform.REMOTE]
 
 SAMSMART_SCHEMA = {
     vol.Optional(CONF_SOURCE_LIST, default=DEFAULT_SOURCE_LIST): cv.string,
@@ -533,11 +540,19 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     _migrate_options_format(hass, entry)
 
     # setup entry
-    entry.async_on_unload(entry.add_update_listener(_update_listener))
     hass.data.setdefault(DOMAIN, {}).setdefault(entry.entry_id, {})
-    hass.data[DOMAIN][entry.entry_id][DATA_OPTIONS] = entry.options.copy()
+    if DATA_CFG_YAML in hass.data[DOMAIN][entry.entry_id]:
+        mac_addr = hass.data[DOMAIN][entry.entry_id][DATA_CFG_YAML].get(CONF_MAC)
+    else:
+        mac_addr = None
 
-    await hass.config_entries.async_forward_entry_setups(entry, [Platform.MEDIA_PLAYER])
+    hass.data[DOMAIN][entry.entry_id][DATA_DEV_INFO] = SamsungTVDeviceInfo(
+        entry.data, entry.entry_id, mac_addr
+    )
+    hass.data[DOMAIN][entry.entry_id][DATA_OPTIONS] = entry.options.copy()
+    entry.async_on_unload(entry.add_update_listener(_update_listener))
+
+    await hass.config_entries.async_forward_entry_setups(entry, SAMSMART_PLATFORM)
 
     return True
 
@@ -545,7 +560,7 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
     """Unload a config entry."""
     if unload_ok := await hass.config_entries.async_unload_platforms(
-        entry, [Platform.MEDIA_PLAYER]
+        entry, SAMSMART_PLATFORM
     ):
         hass.data[DOMAIN][entry.entry_id].pop(DATA_OPTIONS)
         if not hass.data[DOMAIN][entry.entry_id]:
@@ -567,3 +582,48 @@ async def _update_listener(hass: HomeAssistant, entry: ConfigEntry) -> None:
     """Update when config_entry options update."""
     hass.data[DOMAIN][entry.entry_id][DATA_OPTIONS] = entry.options.copy()
     async_dispatcher_send(hass, SIGNAL_CONFIG_ENTITY)
+
+
+class SamsungTVDeviceInfo:
+    """Define generic samsung device info."""
+
+    def __init__(
+        self, config: dict[str, str], entry_id: str, forced_mac: str | None = None
+    ) -> None:
+        """Initialize the class."""
+        self._config = config
+        self._unique_id = config.get(CONF_ID, entry_id)
+        self._name = config.get(CONF_NAME, config[CONF_HOST])
+        self._mac = forced_mac or config.get(CONF_MAC)
+
+    @property
+    def unique_id(self) -> str:
+        """Return device unique id."""
+        return self._unique_id
+
+    @property
+    def name(self) -> str:
+        """Return device name."""
+        return self._name
+
+    @property
+    def device_info(self) -> DeviceInfo:
+        """Return device information."""
+        config = self._config
+
+        model = config.get(CONF_DEVICE_MODEL, "Samsung TV")
+        if dev_name := config.get(CONF_DEVICE_NAME):
+            model = f"{model} ({dev_name})"
+
+        device_info = DeviceInfo(
+            identifiers={(DOMAIN, self.unique_id)},
+            name=self.name,
+            manufacturer="Samsung Electronics",
+            model=model,
+        )
+        if dev_os := config.get(CONF_DEVICE_OS):
+            device_info["sw_version"] = dev_os
+        if self._mac:
+            device_info["connections"] = {(CONNECTION_NETWORK_MAC, self._mac)}
+
+        return device_info

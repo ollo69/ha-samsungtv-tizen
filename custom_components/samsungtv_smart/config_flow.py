@@ -21,6 +21,7 @@ from homeassistant.const import (
     CONF_NAME,
     CONF_PORT,
     CONF_TOKEN,
+    SERVICE_TURN_ON,
     __version__,
 )
 from homeassistant.core import HomeAssistant, callback
@@ -70,7 +71,6 @@ from .const import (
     RESULT_ST_DEVICE_USED,
     RESULT_SUCCESS,
     RESULT_WRONG_APIKEY,
-    SERVICE_TURN_ON,
     AppLaunchMethod,
     AppLoadMethod,
     PowerOnMethod,
