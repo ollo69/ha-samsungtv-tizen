@@ -7,9 +7,9 @@ import logging
 from typing import Any
 
 from homeassistant.components.media_player.const import (
-    DOMAIN as MP_DOMAIN,
     ATTR_MEDIA_CONTENT_ID,
     ATTR_MEDIA_CONTENT_TYPE,
+    DOMAIN as MP_DOMAIN,
     SERVICE_PLAY_MEDIA,
 )
 from homeassistant.components.remote import ATTR_NUM_REPEATS, RemoteEntity
@@ -28,7 +28,7 @@ from homeassistant.helpers.event import async_call_later
 from homeassistant.helpers.service import CONF_SERVICE_ENTITY_ID, async_call_from_config
 
 from . import SamsungTVDeviceInfo
-from .const import DOMAIN, DATA_DEV_INFO
+from .const import DATA_DEV_INFO, DOMAIN
 from .media_player import MEDIA_TYPE_KEY
 
 JOIN_COMMAND = "+"
