@@ -143,6 +143,7 @@ KEY_GREEN|Green
 KEY_YELLOW|Yellow
 KEY_CYAN|Cyan
 KEY_RED|Red
+KEY_COLOR|Color selection
 
 *Teletext*
 __________
@@ -268,6 +269,7 @@ KEY_MIC|
 KEY_NINE_SEPERATE|
 KEY_AUTO_FORMAT|AutoFormat
 KEY_DNET|DNET
+KEY_EXTRA|RemoteAccess
 
 *Auto Arc Keys*
 _______________
