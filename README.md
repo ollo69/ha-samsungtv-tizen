@@ -81,7 +81,7 @@ starting configuration.
 search '**SamsungTV Smart**' and click 'Configure'.
 2. In the configuration mask, enter the IP address of the TV, the name for the Entity and the SmartThings personal
 access token (if created) and then click 'Submit'
-3. **Important**: look for your TV screen and confirm **immediatly** with OK if a popup appear.
+3. **Important**: look for your TV screen and confirm **immediately** with OK if a popup appear.
 4. Congrats! You're all set!
 
 **Note**: be sure that your TV and HA are connected to the same VLAN. Websocket connection through different VLAN normally
